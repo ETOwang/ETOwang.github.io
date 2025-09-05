@@ -273,53 +273,61 @@ public:
 #include <sys/socket.h>
 #include <sys/stat.h>
 
-// 使用sendfile发送文件
-ssize_t send_file(int sockfd, const char* filename) {
-    int fd = open(filename, O_RDONLY);
-    if (fd == -1) return -1;
+class FileSender {
+private:
+    int sockfd_;
     
-    struct stat stat_buf;
-    fstat(fd, &stat_buf);  // 获取文件信息
+public:
+    FileSender(int sockfd) : sockfd_(sockfd) {}
     
-    off_t offset = 0;
-    ssize_t total_sent = 0;
-    ssize_t remaining = stat_buf.st_size;
-    
-    // 发送文件内容
-    while (remaining > 0) {
-        ssize_t sent = sendfile(sockfd, fd, &offset, remaining);
-        if (sent == -1) {
-            close(fd);
-            return -1;
+    // 使用sendfile发送文件
+    ssize_t send_file(const char* filename) {
+        int fd = open(filename, O_RDONLY);
+        if (fd == -1) return -1;
+        
+        struct stat stat_buf;
+        fstat(fd, &stat_buf);  // 获取文件信息
+        
+        off_t offset = 0;
+        ssize_t total_sent = 0;
+        ssize_t remaining = stat_buf.st_size;
+        
+        // 发送文件内容
+        while (remaining > 0) {
+            ssize_t sent = sendfile(sockfd_, fd, &offset, remaining);
+            if (sent == -1) {
+                close(fd);
+                return -1;
+            }
+            total_sent += sent;
+            remaining -= sent;
         }
-        total_sent += sent;
-        remaining -= sent;
+        
+        close(fd);
+        return total_sent;
     }
     
-    close(fd);
-    return total_sent;
-}
-
-// 传统read/write方式（对比用）
-ssize_t send_file_traditional(int sockfd, const char* filename) {
-    int fd = open(filename, O_RDONLY);
-    if (fd == -1) return -1;
-    
-    char buffer[4096];
-    ssize_t total_sent = 0;
-    ssize_t n;
-    
-    while ((n = read(fd, buffer, sizeof(buffer))) > 0) {
-        if (write(sockfd, buffer, n) != n) {
-            close(fd);
-            return -1;
+    // 传统read/write方式（对比用）
+    ssize_t send_file_traditional(const char* filename) {
+        int fd = open(filename, O_RDONLY);
+        if (fd == -1) return -1;
+        
+        char buffer[4096];
+        ssize_t total_sent = 0;
+        ssize_t n;
+        
+        while ((n = read(fd, buffer, sizeof(buffer))) > 0) {
+            if (write(sockfd_, buffer, n) != n) {
+                close(fd);
+                return -1;
+            }
+            total_sent += n;
         }
-        total_sent += n;
+        
+        close(fd);
+        return total_sent;
     }
-    
-    close(fd);
-    return total_sent;
-}</code></pre>
+};</code></pre>
                     </div>
                 </div>
             </div>
@@ -358,16 +366,35 @@ ssize_t send_file_traditional(int sockfd, const char* filename) {
 #include <thread>
 #include <chrono>
 
-// 原子变量作为退出标志
-std::atomic<bool> g_should_exit(false);
-
-// 信号处理函数
-void signal_handler(int signum) {
-    if (signum == SIGINT || signum == SIGTERM) {
-        std::cout << "\n收到退出信号，准备优雅退出..." << std::endl;
-        g_should_exit = true;
+class SignalHandler {
+private:
+    static std::atomic<bool> g_should_exit;
+    
+    static void signal_handler(int signum) {
+        if (signum == SIGINT || signum == SIGTERM) {
+            std::cout << "\n收到退出信号，准备优雅退出..." << std::endl;
+            g_should_exit = true;
+        }
     }
-}
+    
+public:
+    SignalHandler() {
+        // 注册信号处理函数
+        struct sigaction sa;
+        sa.sa_handler = signal_handler;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = 0;
+        
+        sigaction(SIGINT, &sa, nullptr);
+        sigaction(SIGTERM, &sa, nullptr);
+    }
+    
+    static bool should_exit() {
+        return g_should_exit;
+    }
+};
+
+std::atomic<bool> SignalHandler::g_should_exit(false);
 
 // 模拟服务清理工作
 void cleanup() {
@@ -379,7 +406,9 @@ void cleanup() {
 
 // 模拟服务主循环
 void service_main() {
-    while (!g_should_exit) {
+    SignalHandler handler;
+    
+    while (!SignalHandler::should_exit()) {
         std::cout << "服务运行中..." << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
@@ -389,18 +418,7 @@ void service_main() {
 }
 
 int main() {
-    // 注册信号处理函数
-    struct sigaction sa;
-    sa.sa_handler = signal_handler;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
-    
-    sigaction(SIGINT, &sa, nullptr);
-    sigaction(SIGTERM, &sa, nullptr);
-    
-    // 启动服务
     service_main();
-    
     std::cout << "服务已安全退出" << std::endl;
     return 0;
 }</code></pre>
@@ -508,60 +526,63 @@ int main() {
 #include <stdlib.h>
 #include <stdio.h>
 
-void daemonize() {
-    // 第一步：fork并让父进程退出
-    pid_t pid = fork();
-    if (pid < 0) {
-        perror("fork failed");
-        exit(EXIT_FAILURE);
+class DaemonProcess {
+public:
+    static void daemonize() {
+        // 第一步：fork并让父进程退出
+        pid_t pid = fork();
+        if (pid < 0) {
+            perror("fork failed");
+            exit(EXIT_FAILURE);
+        }
+        if (pid > 0) {
+            exit(EXIT_SUCCESS); // 父进程退出
+        }
+        
+        // 第二步：创建新会话
+        if (setsid() < 0) {
+            perror("setsid failed");
+            exit(EXIT_FAILURE);
+        }
+        
+        // 忽略SIGHUP信号
+        signal(SIGHUP, SIG_IGN);
+        
+        // 第三步：再次fork，确保不是会话领头进程
+        pid = fork();
+        if (pid < 0) {
+            perror("fork failed");
+            exit(EXIT_FAILURE);
+        }
+        if (pid > 0) {
+            exit(EXIT_SUCCESS);
+        }
+        
+        // 第四步：改变工作目录
+        if (chdir("/") < 0) {
+            perror("chdir failed");
+            exit(EXIT_FAILURE);
+        }
+        
+        // 第五步：重置文件权限掩码
+        umask(0);
+        
+        // 第六步：关闭所有文件描述符
+        for (int fd = sysconf(_SC_OPEN_MAX); fd >= 0; fd--) {
+            close(fd);
+        }
+        
+        // 第七步：重定向标准IO到/dev/null
+        int devnull = open("/dev/null", O_RDWR);
+        if (devnull < 0) {
+            exit(EXIT_FAILURE);
+        }
+        dup2(devnull, STDIN_FILENO);
+        dup2(devnull, STDOUT_FILENO);
+        dup2(devnull, STDERR_FILENO);
+        close(devnull);
     }
-    if (pid > 0) {
-        exit(EXIT_SUCCESS); // 父进程退出
-    }
-    
-    // 第二步：创建新会话
-    if (setsid() < 0) {
-        perror("setsid failed");
-        exit(EXIT_FAILURE);
-    }
-    
-    // 忽略SIGHUP信号
-    signal(SIGHUP, SIG_IGN);
-    
-    // 第三步：再次fork，确保不是会话领头进程
-    pid = fork();
-    if (pid < 0) {
-        perror("fork failed");
-        exit(EXIT_FAILURE);
-    }
-    if (pid > 0) {
-        exit(EXIT_SUCCESS);
-    }
-    
-    // 第四步：改变工作目录
-    if (chdir("/") < 0) {
-        perror("chdir failed");
-        exit(EXIT_FAILURE);
-    }
-    
-    // 第五步：重置文件权限掩码
-    umask(0);
-    
-    // 第六步：关闭所有文件描述符
-    for (int fd = sysconf(_SC_OPEN_MAX); fd >= 0; fd--) {
-        close(fd);
-    }
-    
-    // 第七步：重定向标准IO到/dev/null
-    int devnull = open("/dev/null", O_RDWR);
-    if (devnull < 0) {
-        exit(EXIT_FAILURE);
-    }
-    dup2(devnull, STDIN_FILENO);
-    dup2(devnull, STDOUT_FILENO);
-    dup2(devnull, STDERR_FILENO);
-    close(devnull);
-}
+};
 
 // 守护进程主逻辑
 void daemon_main() {
@@ -573,7 +594,7 @@ void daemon_main() {
 }
 
 int main() {
-    daemonize();
+    DaemonProcess::daemonize();
     daemon_main();
     return 0;
 }</code></pre>
@@ -737,7 +758,6 @@ valgrind --leak-check=full --suppressions=suppressions.txt ./my_program</code></
 #include <stdexcept>
 #include <utility>
 
-// RAII风格的文件描述符封装类
 class FileDescriptor {
 private:
     int fd_;  // 存储文件描述符
@@ -936,7 +956,7 @@ int main() {
                     <ul class="list-disc ml-5 text-gray-700 mb-4">
                         <li>select、poll、epoll均为<span class="font-medium">同步API</span></li>
                         <li>它们只是提供了I/O多路复用能力，能同时监控多个文件描述符的状态</li>
-                        <li>当I/O事件就绪后，仍需应用程序主动调用read/write等函数来完成实际I/O操作</li>
+                        <li>当I/O事件就绪时，仍需应用程序主动调用read/write等函数来完成实际I/O操作</li>
                         <li>Linux中没有真正意义上的异步I/O API，AIO（异步I/O）实现有限且不常用</li>
                     </ul>
                     
@@ -998,624 +1018,42 @@ public:
     // 添加文件描述符到监控列表
     void add_fd(int fd, uint32_t events) {
         struct epoll_event ev;
-        memset(&ev, 0, sizeof(ev));
-        ev.data.fd = fd;
         ev.events = events;
-        
+        ev.data.fd = fd;
         if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, fd, &ev) == -1) {
             perror("epoll_ctl: add");
-            exit(EXIT_FAILURE);
         }
     }
     
-    // 事件循环
-    void run() {
-        while (true) {
-            int nfds = epoll_wait(epoll_fd_, events_, MAX_EVENTS, -1);
-            if (nfds == -1) {
-                perror("epoll_wait");
-                exit(EXIT_FAILURE);
-            }
-            
-            for (int i = 0; i < nfds; ++i) {
-                if (events_[i].events & EPOLLIN) {
-                    handle_read(events_[i].data.fd);
-                }
-                if (events_[i].events & EPOLLOUT) {
-                    handle_write(events_[i].data.fd);
-                }
-                // 处理其他事件...
-            }
-        }
+    // 等待事件
+    int wait(int timeout = -1) {
+        return epoll_wait(epoll_fd_, events_, MAX_EVENTS, timeout);
     }
     
-private:
-    // 处理读事件
-    void handle_read(int fd) {
-        char buffer[1024];
-        ssize_t n = read(fd, buffer, sizeof(buffer) - 1);
-        if (n == -1) {
-            perror("read");
-            return;
-        }
-        if (n == 0) {
-            std::cout << "Connection closed" << std::endl;
-            close(fd);
-            return;
-        }
-        
-        buffer[n] = '\0';
-        std::cout << "Received: " << buffer << std::endl;
-        // 处理数据...
-    }
-    
-    // 处理写事件
-    void handle_write(int fd) {
-        // 处理写操作...
+    // 获取事件
+    struct epoll_event get_event(int index) {
+        return events_[index];
     }
 };
 
-// 使用示例
 int main() {
-    // 创建Reactor实例
     Reactor reactor;
     
-    // 添加要监控的文件描述符，例如标准输入
+    // 添加标准输入到监控列表
     reactor.add_fd(STDIN_FILENO, EPOLLIN);
     
-    // 启动事件循环
-    reactor.run();
-    
-    return 0;
-}</code></pre>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 知识点卡片12 -->
-            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="linux">
-                <h2 class="text-xl font-bold mb-4 text-primary">12. 共享内存与C++对象</h2>
-                <div class="mb-4">
-                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">使用共享内存（Shared Memory）在Linux上进行进程间通信时，能否直接在其中创建C++对象（如std::string,std::vector）？会有什么潜在风险和陷阱？（例如，静态变量、虚函数表指针、内部指针等问题）。如何安全地实现？</p>
-                </div>
-                
-                <div class="mb-4">
-                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
-                    <p class="text-gray-700 mb-2"><span class="font-medium">直接创建C++对象的风险：</span>不建议在共享内存中直接创建标准C++对象（如std::string、std::vector等），主要原因如下：</p>
-                    
-                    <ul class="list-disc ml-5 text-gray-700 mb-4">
-                        <li><span class="font-medium">内部指针问题：</span>
-                            <p class="mt-1">STL容器通常包含指向堆内存的内部指针（如std::string的char*、std::vector的T*）。这些指针是进程地址空间内的虚拟地址，在其他进程中可能指向无效内存或完全不同的数据。</p>
-                        </li>
-                        <li><span class="font-medium">虚函数表指针：</span>
-                            <p class="mt-1">包含虚函数的类有虚表指针（vptr），指向进程私有地址空间中的虚函数表（vtable）。其他进程中的相同类可能有不同的虚表地址，导致访问错误。</p>
-                        </li>
-                        <li><span class="font-medium">静态成员变量：</span>
-                            <p class="mt-1">类的静态成员变量存储在进程私有内存中，共享内存中的对象访问静态成员时会访问各自进程中的副本，导致状态不一致。</p>
-                        </li>
-                        <li><span class="font-medium">内存分配器差异：</span>
-                            <p class="mt-1">不同进程可能使用不同的内存分配器或堆布局，对象的动态内存操作（如扩容）可能在错误的地址空间分配内存。</p>
-                        </li>
-                        <li><span class="font-medium">构造函数/析构函数问题：</span>
-                            <p class="mt-1">需要确保对象的构造函数和析构函数在所有访问共享内存的进程中正确执行，否则可能导致初始化不完整或资源泄漏。</p>
-                        </li>
-                    </ul>
-                    
-                    <p class="text-gray-700 mb-2"><span class="font-medium">安全实现方法：</span></p>
-                    <ul class="list-disc ml-5 text-gray-700">
-                        <li>使用POD（Plain Old Data）类型或简单结构体，不包含任何指针或引用</li>
-                        <li>如需复杂数据结构，使用偏移量代替指针，手动管理内存布局</li>
-                        <li>实现自定义的、基于共享内存的分配器，供容器使用</li>
-                        <li>确保所有进程使用相同的编译器、编译选项和ABI，避免内存布局差异</li>
-                        <li>使用序列化/反序列化机制，在进程间传递对象数据而非直接共享对象</li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h3 class="font-semibold text-lg mb-2">代码示例：共享内存中的安全数据结构</h3>
-                    <div class="code-block">
-                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
-                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <cstring>
-#include <iostream>
-#include <stdexcept>
-
-// 共享内存中安全使用的POD结构体
-struct SharedData {
-    static const int MAX_STR_LEN = 256;
-    char name[MAX_STR_LEN];  // 固定大小字符数组，不使用指针
-    int id;
-    double value;
-    // 不包含虚函数、指针或复杂类型
-};
-
-// 共享内存管理器
-class SharedMemory {
-private:
-    int shmid_;
-    void* shmaddr_;
-    bool is_owner_;
-    
-public:
-    // 创建或获取共享内存
-    SharedMemory(key_t key, size_t size, bool create = false) : is_owner_(create) {
-        if (create) {
-            // 创建新的共享内存段
-            shmid_ = shmget(key, size, IPC_CREAT | 0666);
-        } else {
-            // 获取已存在的共享内存段
-            shmid_ = shmget(key, size, 0666);
-        }
-        
-        if (shmid_ == -1) {
-            throw std::runtime_error("Failed to get shared memory");
-        }
-        
-        // 附加共享内存到进程地址空间
-        shmaddr_ = shmat(shmid_, nullptr, 0);
-        if (shmaddr_ == (void*)-1) {
-            throw std::runtime_error("Failed to attach shared memory");
-        }
-    }
-    
-    ~SharedMemory() {
-        // 分离共享内存
-        shmdt(shmaddr_);
-        
-        // 如果是创建者，删除共享内存
-        if (is_owner_) {
-            shmctl(shmid_, IPC_RMID, nullptr);
-        }
-    }
-    
-    // 获取共享内存中的数据指针
-    template <typename T>
-    T* get_data() {
-        return static_cast<T*>(shmaddr_);
-    }
-};
-
-// 使用示例
-int main() {
-    const key_t SHM_KEY = 12345;
-    const size_t SHM_SIZE = sizeof(SharedData);
-    
-    try {
-        // 创建共享内存（第一个进程）
-        SharedMemory shm(SHM_KEY, SHM_SIZE, true);
-        
-        // 获取数据指针并初始化
-        SharedData* data = shm.get_data<SharedData>();
-        std::strncpy(data->name, "Example", SharedData::MAX_STR_LEN - 1);
-        data->id = 1;
-        data->value = 3.14;
-        
-        std::cout << "Data written to shared memory. Press enter to exit..." << std::endl;
-        std::cin.get();
-        
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-        return 1;
-    }
-    
-    return 0;
-}</code></pre>
-                    </div>
-                    
-                    <div class="code-block">
-                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
-                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <iostream>
-#include <stdexcept>
-#include "shared_memory.h"  // 包含上面定义的SharedData和SharedMemory
-
-// 共享内存中使用的简单数组结构（替代vector）
-struct SharedArray {
-    static const int MAX_SIZE = 100;
-    int data[MAX_SIZE];
-    int count;  // 实际元素数量
-    
-    // 提供简单的数组操作方法
-    void add(int value) {
-        if (count < MAX_SIZE) {
-            data[count++] = value;
-        }
-    }
-    
-    int get(int index) const {
-        if (index >= 0 && index < count) {
-            return data[index];
-        }
-        return -1;  // 错误值
-    }
-};
-
-// 读取共享内存的示例
-int main() {
-    const key_t SHM_KEY = 12345;
-    const size_t SHM_SIZE = sizeof(SharedData);
-    
-    try {
-        // 获取已存在的共享内存（第二个进程）
-        SharedMemory shm(SHM_KEY, SHM_SIZE, false);
-        
-        // 读取数据
-        SharedData* data = shm.get_data<SharedData>();
-        std::cout << "Read from shared memory:" << std::endl;
-        std::cout << "Name: " << data->name << std::endl;
-        std::cout << "ID: " << data->id << std::endl;
-        std::cout << "Value: " << data->value << std::endl;
-        
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-        return 1;
-    }
-    
-    return 0;
-}</code></pre>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 知识点卡片13 -->
-            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="cpp">
-                <h2 class="text-xl font-bold mb-4 text-primary">13. C++协程与epoll集成</h2>
-                <div class="mb-4">
-                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">现代C++协程（Coroutines）是协作式调度的。当一个C++协程在Linux上通过co_await挂起时，底层的执行线程（pthread）在做什么？这与你所理解的epoll事件循环有何相似与不同之处？协程如何与现有的基于epoll的Reactor网络库集成？</p>
-                </div>
-                
-                <div class="mb-4">
-                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
-                    <p class="text-gray-700 mb-2"><span class="font-medium">协程挂起时的线程状态：</span></p>
-                    <p class="text-gray-700 mb-2">当C++协程通过co_await挂起时，协程的执行被暂停，其状态（寄存器、栈帧等）被保存。此时，原来执行该协程的pthread线程会被释放，可以去执行其他就绪的协程或任务。线程并不会阻塞等待，而是继续处理其他工作，实现了高效的资源利用。</p>
-                    
-                    <p class="text-gray-700 mb-2"><span class="font-medium">与epoll事件循环的比较：</span></p>
-                    <ul class="list-disc ml-5 text-gray-700 mb-2">
-                        <li><span class="font-medium">相似之处：</span>
-                            <ul class="list-circle ml-5">
-                                <li>都实现了等待操作时的资源高效利用</li>
-                                <li>都避免了传统阻塞I/O导致的线程闲置问题</li>
-                                <li>都支持在单一（或少量）线程上处理大量并发操作</li>
-                            </ul>
-                        </li>
-                        <li><span class="font-medium">不同之处：</span>
-                            <ul class="list-circle ml-5">
-                                <li>epoll是内核级别的I/O事件通知机制；协程是用户态的调度机制</li>
-                                <li>epoll关注I/O事件就绪通知；协程关注执行流程的暂停与恢复</li>
-                                <li>epoll需要显式管理文件描述符和事件；协程通过co_await隐式处理</li>
-                                <li>epoll的回调函数执行在事件循环线程；协程恢复后继续之前的执行流</li>
-                            </ul>
-                        </li>
-                    </ul>
-                    
-                    <p class="text-gray-700"><span class="font-medium">协程与epoll集成方式：</span>将epoll事件作为可等待对象（awaitable），当协程co_await一个I/O操作时，注册相应的epoll事件并挂起。当事件就绪时，epoll通知反应堆（Reactor），反应堆唤醒对应的协程继续执行。这种方式结合了epoll的高效I/O多路复用和协程的简洁编程模型。</p>
-                </div>
-                
-                <div>
-                    <h3 class="font-semibold text-lg mb-2">代码示例：协程与epoll集成</h3>
-                    <div class="code-block">
-                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
-                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <coroutine>
-#include <sys/epoll.h>
-#include <unistd.h>
-#include <iostream>
-#include <cstring>
-#include <vector>
-#include <thread>
-
-// 前向声明
-class EpollContext;
-
-// 可等待对象：等待文件描述符的读事件
-struct AwaitableFdRead {
-    EpollContext& epoll_ctx;
-    int fd;
-    char* buffer;
-    size_t buffer_size;
-    ssize_t result;
-    
-    AwaitableFdRead(EpollContext& ctx, int fd, char* buf, size_t size)
-        : epoll_ctx(ctx), fd(fd), buffer(buf), buffer_size(size), result(-1) {}
-    
-    // 协程挂起前的操作：注册epoll事件
-    bool await_ready() const noexcept { return false; }
-    
-    // 挂起协程，保存回调
-    void await_suspend(std::coroutine_handle<> handle);
-    
-    // 协程恢复时的操作：执行读操作
-    ssize_t await_resume() noexcept { return result; }
-};
-
-// Epoll上下文管理
-// Epoll上下文管理
-class EpollContext {
-private:
-    int epoll_fd_;
-    static const int MAX_EVENTS = 100;
-    struct EventData {
-        std::coroutine_handle<> handle;
-        AwaitableFdRead* awaitable;
-    };
-    
-public:
-    EpollContext() {
-        epoll_fd_ = epoll_create1(0);
-        if (epoll_fd_ == -1) {
-            perror("epoll_create1");
-            exit(EXIT_FAILURE);
-        }
-    }
-    
-    ~EpollContext() {
-        close(epoll_fd_);
-    }
-    
-    // 注册读事件
-    void register_read(int fd, std::coroutine_handle<> handle, AwaitableFdRead* awaitable) {
-        struct epoll_event ev;
-        memset(&ev, 0, sizeof(ev));
-        
-        // 存储协程句柄和可等待对象
-        EventData* data = new EventData{handle, awaitable};
-        ev.data.ptr = data;
-        ev.events = EPOLLIN;
-        
-        if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, fd, &ev) == -1) {
-            perror("epoll_ctl: add");
-            delete data;
-            exit(EXIT_FAILURE);
-        }
-    }
-    
-    // 移除事件
-    void unregister(int fd) {
-        epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, fd, nullptr);
-    }
-    
-    // 事件循环
-    void run_event_loop() {
-        while (true) {
-            struct epoll_event events[MAX_EVENTS];
-            int nfds = epoll_wait(epoll_fd_, events, MAX_EVENTS, -1);
-            if (nfds == -1) {
-                perror("epoll_wait");
-                exit(EXIT_FAILURE);
-            }
-            
-            for (int i = 0; i < nfds; ++i) {
-                EventData* data = static_cast<EventData*>(events[i].data.ptr);
-                
-                // 执行读操作
-                if (events[i].events & EPOLLIN) {
-                    data->awaitable->result = read(data->awaitable->fd, 
-                                                data->awaitable->buffer, 
-                                                data->awaitable->buffer_size);
+    while (true) {
+        int num_events = reactor.wait();
+        for (int i = 0; i < num_events; ++i) {
+            struct epoll_event ev = reactor.get_event(i);
+            if (ev.events & EPOLLIN) {
+                char buffer[1024];
+                ssize_t n = read(ev.data.fd, buffer, sizeof(buffer));
+                if (n > 0) {
+                    std::cout << "Read: " << std::string(buffer, n);
                 }
-                
-                // 移除事件
-                unregister(data->awaitable->fd);
-                
-                // 恢复协程执行
-                data->handle.resume();
-                
-                // 清理
-                delete data;
             }
         }
-    }
-    
-    // 创建读操作可等待对象
-    AwaitableFdRead read(int fd, char* buffer, size_t size) {
-        return AwaitableFdRead(*this, fd, buffer, size);
-    }
-};
-
-// 实现await_suspend
-void AwaitableFdRead::await_suspend(std::coroutine_handle<> handle) {
-    epoll_ctx.register_read(fd, handle, this);
-}
-
-// 协程任务类型
-struct Task {
-    struct promise_type {
-        Task get_return_object() { return {}; }
-        std::suspend_never initial_suspend() { return {}; }
-        std::suspend_never final_suspend() noexcept { return {}; }
-        void return_void() {}
-        void unhandled_exception() { std::terminate(); }
-    };
-};
-
-// 示例协程：读取标准输入
-Task read_from_stdin(EpollContext& epoll) {
-    char buffer[1024];
-    std::cout << "Waiting for input..." << std::endl;
-    
-    // 等待并读取输入
-    ssize_t n = co_await epoll.read(STDIN_FILENO, buffer, sizeof(buffer) - 1);
-    
-    if (n > 0) {
-        buffer[n] = '\0';
-        std::cout << "Read: " << buffer << std::endl;
-    } else {
-        std::cout << "Read error or EOF" << std::endl;
-    }
-}
-
-int main() {
-    EpollContext epoll;
-    
-    // 启动事件循环线程
-    std::thread event_thread(&EpollContext::run_event_loop, &epoll);
-    
-    // 启动协程
-    read_from_stdin(epoll);
-    
-    // 等待事件循环线程
-    event_thread.join();
-    
-    return 0;
-}</code></pre>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 知识点卡片14 -->
-            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="cpp">
-                <h2 class="text-xl font-bold mb-4 text-primary">14. 系统调用错误处理</h2>
-                <div class="mb-4">
-                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">在C++代码中，一个系统调用（如read,write）失败返回-1时，你是如何处理这个错误的？是检查errno并抛出异常，还是返回错误码？两者分别有什么优劣？</p>
-                </div>
-                
-                <div class="mb-4">
-                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
-                    <p class="text-gray-700 mb-2">系统调用失败时的错误处理是C++程序健壮性的重要组成部分，主要有两种处理方式：检查errno并抛出异常，或返回错误码。</p>
-                    
-                    <p class="text-gray-700 mb-2"><span class="font-medium">检查errno并抛出异常：</span></p>
-                    <ul class="list-disc ml-5 text-gray-700 mb-4">
-                        <li><span class="font-medium">优势：</span>
-                            <ul class="list-circle ml-5">
-                                <li>错误处理与正常逻辑分离，代码更清晰，可读性更好</li>
-                                <li>无需手动逐层传递错误，异常会自动向上传播到适当的处理点</li>
-                                <li>可以携带丰富的错误信息（错误码、描述、堆栈跟踪等）</li>
-                                <li>符合C++标准库的惯用法，与标准库组件配合更自然</li>
-                            </ul>
-                        </li>
-                        <li><span class="font-medium">劣势：</span>
-                            <ul class="list-circle ml-5">
-                                <li>可能引入一定的性能开销（异常处理机制的代价）</li>
-                                <li>需要确保代码的异常安全性，防止资源泄漏</li>
-                                <li>对于不熟悉异常的开发者，可能难以理解和维护</li>
-                                <li>在某些实时系统或性能敏感场景中可能不适用</li>
-                            </ul>
-                        </li>
-                    </ul>
-                    
-                    <p class="text-gray-700 mb-2"><span class="font-medium">返回错误码：</span></p>
-                    <ul class="list-disc ml-5 text-gray-700 mb-4">
-                        <li><span class="font-medium">优势：</span>
-                            <ul class="list-circle ml-5">
-                                <li>性能更好，没有异常处理的额外开销</li>
-                                <li>逻辑显式，错误处理路径清晰可见</li>
-                                <li>更适合C语言风格的代码或与C库交互</li>
-                                <li>在实时系统或性能敏感场景中更受欢迎</li>
-                            </ul>
-                        </li>
-                        <li><span class="font-medium">劣势：</span>
-                            <ul class="list-circle ml-5">
-                                <li>容易被忽略（开发者忘记检查返回值）</li>
-                                <li>错误需要手动逐层传递，增加代码复杂度</li>
-                                <li>错误信息有限，通常只能传递错误码</li>
-                                <li>正常逻辑与错误处理混杂，代码可读性差</li>
-                            </ul>
-                        </li>
-                    </ul>
-                    
-                    <p class="text-gray-700"><span class="font-medium">最佳实践：</span>通常建议在应用层代码中使用异常处理，在底层库中使用错误码。关键操作必须检查错误，不可忽略任何系统调用的返回值。对于可能频繁失败的操作，可考虑使用错误码以避免异常开销；对于不常失败但需要复杂错误处理的操作，使用异常更合适。</p>
-                </div>
-                
-                <div>
-                    <h3 class="font-semibold text-lg mb-2">代码示例：两种错误处理方式</h3>
-                    <div class="code-block">
-                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
-                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <unistd.h>
-#include <errno.h>
-#include <string>
-#include <stdexcept>
-#include <iostream>
-
-// 错误码枚举
-enum class ErrorCode {
-    SUCCESS = 0,
-    READ_FAILED,
-    WRITE_FAILED,
-    INVALID_PARAM
-};
-
-// 错误信息结构体
-struct ErrorInfo {
-    ErrorCode code;
-    std::string message;
-    int system_errno;
-};
-
-// 方式1：返回错误码
-ErrorInfo read_with_error_code(int fd, char* buffer, size_t size) {
-    if (buffer == nullptr || size == 0) {
-        return {ErrorCode::INVALID_PARAM, "Invalid parameters", 0};
-    }
-    
-    ssize_t n = read(fd, buffer, size);
-    if (n == -1) {
-        return {
-            ErrorCode::READ_FAILED, 
-            "Read operation failed", 
-            errno
-        };
-    }
-    
-    return {ErrorCode::SUCCESS, "Success", 0};
-}
-
-// 方式2：抛出异常
-class SystemError : public std::runtime_error {
-private:
-    int errno_;
-    std::string operation_;
-    
-public:
-    SystemError(const std::string& op, int err)
-        : std::runtime_error(op + " failed: " + std::strerror(err)),
-          errno_(err), operation_(op) {}
-          
-    int get_errno() const { return errno_; }
-    const std::string& get_operation() const { return operation_; }
-};
-
-ssize_t read_with_exception(int fd, char* buffer, size_t size) {
-    if (buffer == nullptr || size == 0) {
-        throw std::invalid_argument("Invalid parameters for read");
-    }
-    
-    ssize_t n = read(fd, buffer, size);
-    if (n == -1) {
-        throw SystemError("read", errno);
-    }
-    
-    return n;
-}
-
-// 使用示例
-int main() {
-    char buffer[1024];
-    int fd = STDIN_FILENO;  // 标准输入
-    
-    // 使用错误码方式
-    std::cout << "Using error code approach:" << std::endl;
-    ErrorInfo err = read_with_error_code(fd, buffer, sizeof(buffer));
-    if (err.code != ErrorCode::SUCCESS) {
-        std::cerr << "Error: " << err.message 
-                  << ", system error: " << std::strerror(err.system_errno) << std::endl;
-    } else {
-        std::cout << "Read " << buffer << std::endl;
-    }
-    
-    // 使用异常方式
-    std::cout << "\nUsing exception approach:" << std::endl;
-    try {
-        ssize_t n = read_with_exception(fd, buffer, sizeof(buffer));
-        std::cout << "Read " << n << " bytes: " << buffer << std::endl;
-    } catch (const SystemError& e) {
-        std::cerr << "System error: " << e.what() 
-                  << " (errno: " << e.get_errno() << ")" << std::endl;
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
     }
     
     return 0;
@@ -1626,32 +1064,21 @@ int main() {
         </div>
     </main>
 
-    <!-- 页脚 -->
-    <footer class="bg-dark text-white py-6 mt-12">
-        <div class="container mx-auto px-4 text-center">
-            <p>C++/Linux面试知识点详解 | 包含全部14个知识点</p>
-            <p class="mt-2 text-sm text-gray-400">代码展示已格式化并支持复制功能</p>
-        </div>
-    </footer>
-
     <script>
-        // 分类筛选功能
-        document.addEventListener('DOMContentLoaded', () => {
-            const filterBtns = document.querySelectorAll('.filter-btn');
+        // 过滤功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
             const cards = document.querySelectorAll('.card');
-
-            filterBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    // 更新按钮样式
-                    filterBtns.forEach(b => {
-                        b.classList.remove('bg-primary', 'text-white');
-                        b.classList.add('bg-gray-200', 'text-dark');
-                    });
-                    btn.classList.remove('bg-gray-200', 'text-dark');
-                    btn.classList.add('bg-primary', 'text-white');
-
-                    // 筛选卡片
-                    const filter = btn.getAttribute('data-filter');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const filter = this.getAttribute('data-filter');
+                    
+                    // 更新按钮状态
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 过滤卡片
                     cards.forEach(card => {
                         if (filter === 'all' || card.getAttribute('data-category') === filter) {
                             card.style.display = 'block';
@@ -1662,35 +1089,24 @@ int main() {
                 });
             });
         });
-
-        // 代码复制功能
+        
+        // 复制代码功能
         function copyCode(button) {
-            // 获取代码块元素
-            const preElement = button.nextElementSibling;
-            const code = preElement.textContent;
+            const codeBlock = button.parentElement;
+            const code = codeBlock.querySelector('code');
+            const text = code.textContent || code.innerText;
             
-            // 复制到剪贴板
-            navigator.clipboard.writeText(code).then(() => {
-                // 显示复制成功状态
-                const originalText = button.textContent;
+            navigator.clipboard.writeText(text).then(function() {
                 button.textContent = '已复制';
                 button.classList.add('copied');
-                
-                // 2秒后恢复原状
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.classList.remove('copied');
-                }, 2000);
-            }).catch(err => {
-                console.error('复制失败: ', err);
-                button.textContent = '复制失败';
-                
                 setTimeout(() => {
                     button.textContent = '复制';
+                    button.classList.remove('copied');
                 }, 2000);
+            }).catch(function(err) {
+                console.error('复制失败:', err);
             });
         }
     </script>
 </body>
 </html>
-    

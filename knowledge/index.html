@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>完整面试C++/Linux面试知识点详解</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 引入代码高亮库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script>
+        // 初始化代码高亮
+        document.addEventListener('DOMContentLoaded', () => {
+            hljs.highlightAll();
+        });
+        
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#10b981',
+                        accent: '#f59e0b',
+                        dark: '#1e293b',
+                        light: '#f8fafc'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['Fira Code', 'Consolas', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .card-shadow {
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            }
+            .card-hover {
+                transition: transform 0.2s, box-shadow 0.2s;
+            }
+            .card-hover:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            }
+            .code-block {
+                position: relative;
+                border-radius: 0.375rem;
+                margin: 0.5rem 0;
+                overflow: hidden;
+            }
+            .copy-btn {
+                position: absolute;
+                top: 0.5rem;
+                right: 0.5rem;
+                padding: 0.25rem 0.5rem;
+                background-color: rgba(0, 0, 0, 0.5);
+                color: white;
+                border: none;
+                border-radius: 0.25rem;
+                cursor: pointer;
+                font-size: 0.75rem;
+                transition: background-color 0.2s;
+                z-index: 10;
+            }
+            .copy-btn:hover {
+                background-color: rgba(0, 0, 0, 0.7);
+            }
+            .copy-btn.copied {
+                background-color: #10b981;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 顶部导航 -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <h1 class="text-2xl md:text-3xl font-bold text-dark flex items-center">
+                <i class="fa fa-code mr-2 text-primary"></i>
+                C++/Linux面试知识点详解
+            </h1>
+            <div class="mt-3 flex flex-wrap gap-2">
+                <button class="filter-btn active px-3 py-1 rounded-full bg-primary text-white text-sm" data-filter="all">
+                    全部知识点
+                </button>
+                <button class="filter-btn px-3 py-1 rounded-full bg-gray-200 text-dark text-sm" data-filter="cpp">
+                    C++
+                </button>
+                <button class="filter-btn px-3 py-1 rounded-full bg-gray-200 text-dark text-sm" data-filter="linux">
+                    Linux
+                </button>
+                <button class="filter-btn px-3 py-1 rounded-full bg-gray-200 text-dark text-sm" data-filter="network">
+                    网络编程
+                </button>
+                <button class="filter-btn px-3 py-1 rounded-full bg-gray-200 text-dark text-sm" data-filter="performance">
+                    性能优化
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容区 -->
+    <main class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- 知识点卡片1 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="cpp">
+                <h2 class="text-xl font-bold mb-4 text-primary">1. Copy On Write (COW) 机制</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">什么是copy on write？C++中如何利用RAII和智能指针实现一个COW的字符串类？Linux中fork()的COW机制是如何影响C++程序内存使用和性能的？</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
+                    <p class="text-gray-700 mb-2"><span class="font-medium">Copy On Write (写时复制)</span> 是一种优化技术，核心思想是延迟内存复制操作，只有当需要修改数据时才真正进行复制，从而减少不必要的内存开销。</p>
+                    
+                    <p class="text-gray-700 mb-2"><span class="font-medium">在C++中实现COW字符串：</span>可以使用智能指针（如shared_ptr）管理底层字符数组，读操作时共享指针，写操作时检查引用计数，当计数大于1时进行复制。</p>
+                    
+                    <p class="text-gray-700"><span class="font-medium">fork()的COW影响：</span>fork创建子进程时，内核不会立即复制父进程的内存，而是让父子进程共享同一份内存页表，标记为只读。当任一进程修改内存时，内核才会复制该内存页，这减少了进程创建的初始开销，但可能在后续写操作时带来额外延迟。</p>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">代码示例：COW字符串类</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">class CowString {
+private:
+    // 共享数据结构
+    struct Data {
+        std::shared_ptr<char[]> buffer;
+        size_t size;
+        size_t capacity;
+        
+        Data(size_t cap) : capacity(cap), size(0) {
+            buffer = std::make_shared<char[]>(cap + 1); // +1 for null terminator
+            buffer[0] = '\0';
+        }
+    };
+    
+    std::shared_ptr<Data> data_;
+    
+    // 确保拥有独立副本（写时复制）
+    void ensure_unique() {
+        if (data_.use_count() > 1) {
+            auto new_data = std::make_shared<Data>(data_->capacity);
+            std::strcpy(new_data->buffer.get(), data_->buffer.get());
+            new_data->size = data_->size;
+            data_ = new_data;
+        }
+    }
+    
+public:
+    CowString() : data_(std::make_shared<Data>(15)) {} // 初始容量15
+    
+    // 拷贝构造 - 共享数据
+    CowString(const CowString& other) : data_(other.data_) {}
+    
+    // 字符串赋值 - 写时复制
+    CowString& operator=(const char* str) {
+        ensure_unique(); // 确保修改不会影响其他共享者
+        size_t len = std::strlen(str);
+        if (len > data_->capacity) {
+            data_ = std::make_shared<Data>(len);
+        }
+        std::strcpy(data_->buffer.get(), str);
+        data_->size = len;
+        return *this;
+    }
+    
+    // 字符修改 - 写时复制
+    char& operator[](size_t index) {
+        ensure_unique(); // 修改前确保拥有独立副本
+        return data_->buffer[index];
+    }
+    
+    // 只读访问 - 无需复制
+    const char& operator[](size_t index) const {
+        return data_->buffer[index];
+    }
+    
+    // 其他方法...
+};</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识点卡片2 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="cpp">
+                <h2 class="text-xl font-bold mb-4 text-primary">2. 虚函数表内存布局</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">在你所选用的编译器（例如gcc）中，虚函数表的内存布局是怎样的？在Linux下，如何通过gdb调试器或直接解析二进制文件（使用objdump或readelf）来验证一个C++类的内存布局？</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
+                    <p class="text-gray-700 mb-2"><span class="font-medium">GCC中的虚函数表布局：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li>每个包含虚函数的类（或其派生类）都有一个虚函数表（vtable），存储虚函数地址</li>
+                        <li>类的每个实例对象的首地址存放一个指向虚函数表的指针（vptr）</li>
+                        <li>单继承时，派生类虚表包含基类虚函数（未被重写的）和自身虚函数</li>
+                        <li>多继承时，派生类对象会有多个vptr，分别对应不同基类的虚表</li>
+                        <li>虚表中可能包含RTTI（运行时类型信息）指针，通常位于虚表的开始或结尾</li>
+                    </ul>
+                    
+                    <p class="text-gray-700 mb-2"><span class="font-medium">验证方法：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700">
+                        <li><span class="font-medium">使用gdb：</span>通过`p *object`查看对象布局，`info vtbl object`查看虚函数表，`x/10x vtable_address`查看虚函数地址</li>
+                        <li><span class="font-medium">使用objdump：</span>`objdump -s -j .rodata executable`查看只读数据段，搜索"vtable for ClassName"查找虚表</li>
+                        <li><span class="font-medium">使用readelf：</span>`readelf --symbols executable | grep vtable`查找虚表符号</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">代码示例与验证</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">// 示例类定义
+class Base {
+public:
+    virtual void foo() {}
+    virtual void bar() {}
+};
+
+class Derived : public Base {
+public:
+    void foo() override {} // 重写foo
+    virtual void baz() {}  // 新增虚函数
+};</code></pre>
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="bash p-4 text-sm overflow-x-auto">// 使用gdb查看虚表的命令
+(gdb) p derived_object
+(gdb) info vtbl derived_object
+(gdb) x/10x &derived_object  // 查看对象内存，首地址是vptr
+
+// 使用objdump查看虚表
+// objdump -s -j .rodata a.out | grep -A 10 "vtable for Derived"</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识点卡片3 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="network">
+                <h2 class="text-xl font-bold mb-4 text-primary">3. 零拷贝(Zero-Copy)机制</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">零拷贝（Zero-Copy）是什么？Linux中sendfile()等系统调用如何实现零拷贝？在C++网络编程中，如何利用这些系统调用（例如，在传输文件时）来提升性能？与使用传统的read/write方式相比，需要注意什么？</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
+                    <p class="text-gray-700 mb-2"><span class="font-medium">零拷贝概念：</span>零拷贝是一种IO操作优化技术，目的是减少数据在用户态和内核态之间的拷贝次数，以及CPU参与的数据搬运操作，从而提高数据传输效率。</p>
+                    
+                    <p class="text-gray-700 mb-2"><span class="font-medium">sendfile()实现原理：</span>sendfile()系统调用允许数据直接从文件描述符传输到套接字，整个过程完全在内核态完成，避免了数据在用户态和内核态之间的拷贝。它通过DMA（直接内存访问）将数据从磁盘读取到内核缓冲区，然后直接转发到网络协议栈，最后通过DMA发送到网卡。</p>
+                    
+                    <p class="text-gray-700 mb-2"><span class="font-medium">优势：</span>减少CPU占用、减少内存带宽消耗、降低缓存污染，特别适合大文件传输场景。</p>
+                    
+                    <p class="text-gray-700"><span class="font-medium">注意事项：</span>无法在传输过程中修改数据、需要文件描述符和套接字支持、小数据传输可能因系统调用开销抵消收益、不是所有文件系统和设备都支持。</p>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">代码示例：使用sendfile传输文件</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <sys/sendfile.h>
+#include <fcntl.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+
+// 使用sendfile发送文件
+ssize_t send_file(int sockfd, const char* filename) {
+    int fd = open(filename, O_RDONLY);
+    if (fd == -1) return -1;
+    
+    struct stat stat_buf;
+    fstat(fd, &stat_buf);  // 获取文件信息
+    
+    off_t offset = 0;
+    ssize_t total_sent = 0;
+    ssize_t remaining = stat_buf.st_size;
+    
+    // 发送文件内容
+    while (remaining > 0) {
+        ssize_t sent = sendfile(sockfd, fd, &offset, remaining);
+        if (sent == -1) {
+            close(fd);
+            return -1;
+        }
+        total_sent += sent;
+        remaining -= sent;
+    }
+    
+    close(fd);
+    return total_sent;
+}
+
+// 传统read/write方式（对比用）
+ssize_t send_file_traditional(int sockfd, const char* filename) {
+    int fd = open(filename, O_RDONLY);
+    if (fd == -1) return -1;
+    
+    char buffer[4096];
+    ssize_t total_sent = 0;
+    ssize_t n;
+    
+    while ((n = read(fd, buffer, sizeof(buffer))) > 0) {
+        if (write(sockfd, buffer, n) != n) {
+            close(fd);
+            return -1;
+        }
+        total_sent += n;
+    }
+    
+    close(fd);
+    return total_sent;
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识点卡片4 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="linux">
+                <h2 class="text-xl font-bold mb-4 text-primary">4. Linux信号(Signal)处理</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">linux中的信号（Signal）是什么？用在程序中一般处理哪些信号？如何优雅地处理SIGTERM和SIGINT信号来实现服务的平滑安全地退出？</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
+                    <p class="text-gray-700 mb-2"><span class="font-medium">信号概念：</span>信号是Linux中进程间异步通信的一种机制，用于通知进程发生了某种事件。信号可以由内核、其他进程或进程自身产生。</p>
+                    
+                    <p class="text-gray-700 mb-2"><span class="font-medium">常见需要处理的信号：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li>SIGINT (2)：终端中断信号，通常由Ctrl+C触发</li>
+                        <li>SIGTERM (15)：终止信号，请求进程退出</li>
+                        <li>SIGQUIT (3)：终端退出信号，通常由Ctrl+\触发</li>
+                        <li>SIGPIPE (13)：管道断裂信号，写入无人读取的管道</li>
+                        <li>SIGHUP (1)：挂起信号，终端关闭时发送</li>
+                    </ul>
+                    
+                    <p class="text-gray-700"><span class="font-medium">优雅处理SIGTERM和SIGINT：</span>不应在信号处理函数中执行复杂操作，而应设置一个退出标志。主程序定期检查该标志，当检测到退出请求时，执行必要的清理工作（关闭连接、释放资源、保存状态等），然后安全退出。</p>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">代码示例：优雅退出实现</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <signal.h>
+#include <atomic>
+#include <iostream>
+#include <thread>
+#include <chrono>
+
+// 原子变量作为退出标志
+std::atomic<bool> g_should_exit(false);
+
+// 信号处理函数
+void signal_handler(int signum) {
+    if (signum == SIGINT || signum == SIGTERM) {
+        std::cout << "\n收到退出信号，准备优雅退出..." << std::endl;
+        g_should_exit = true;
+    }
+}
+
+// 模拟服务清理工作
+void cleanup() {
+    std::cout << "执行清理工作..." << std::endl;
+    // 关闭网络连接、释放资源、保存状态等
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    std::cout << "清理完成" << std::endl;
+}
+
+// 模拟服务主循环
+void service_main() {
+    while (!g_should_exit) {
+        std::cout << "服务运行中..." << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+    
+    // 执行清理
+    cleanup();
+}
+
+int main() {
+    // 注册信号处理函数
+    struct sigaction sa;
+    sa.sa_handler = signal_handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    
+    sigaction(SIGINT, &sa, nullptr);
+    sigaction(SIGTERM, &sa, nullptr);
+    
+    // 启动服务
+    service_main();
+    
+    std::cout << "服务已安全退出" << std::endl;
+    return 0;
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识点卡片5 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="linux">
+                <h2 class="text-xl font-bold mb-4 text-primary">5. Linux进程地址空间布局</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">请描述Linux进程的地址空间布局。另外，new char[1]可能会分配多少内存？</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
+                    <p class="text-gray-700 mb-2"><span class="font-medium">Linux进程地址空间布局（从低地址到高地址）：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700 mb-4">
+                        <li><span class="font-medium">文本段（Text Segment）：</span>存放可执行代码，只读，可共享</li>
+                        <li><span class="font-medium">数据段（Data Segment）：</span>存放已初始化的全局变量和静态变量</li>
+                        <li><span class="font-medium">BSS段：</span>存放未初始化的全局变量和静态变量，程序启动时会被清零</li>
+                        <li><span class="font-medium">堆（Heap）：</span>动态内存分配区域，从低地址向高地址增长</li>
+                        <li><span class="font-medium">内存映射区（Memory Mapping Segment）：</span>包括共享库、共享内存、文件映射等，从高地址向低地址增长</li>
+                        <li><span class="font-medium">栈（Stack）：</span>存放函数调用栈帧、局部变量等，从高地址向低地址增长</li>
+                        <li><span class="font-medium">内核空间：</span>进程无法直接访问，存放内核代码和数据</li>
+                    </ul>
+                    
+                    <p class="text-gray-700 mb-2"><span class="font-medium">new char[1]的实际分配：</span></p>
+                    <p class="text-gray-700">虽然逻辑上只请求1字节，但实际分配的内存会更多，原因包括：</p>
+                    <ul class="list-disc ml-5 text-gray-700">
+                        <li>内存分配器需要存储元数据（如块大小、是否已分配等）</li>
+                        <li>内存对齐要求（通常是8字节或16字节对齐）</li>
+                        <li>不同分配器的最小块大小（如glibc的malloc在64位系统上最小分配16字节）</li>
+                        <li>因此，new char[1]实际可能分配16字节（1字节用户数据 + 15字节元数据和对齐填充）</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">代码示例：查看内存布局</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <iostream>
+#include <cstdlib>
+
+// 全局变量，位于数据段或BSS段
+int global_init = 42;        // 数据段
+int global_uninit;           // BSS段
+
+int main() {
+    // 局部变量，位于栈上
+    int stack_var;
+    
+    // 动态分配，位于堆上
+    char* heap_var = new char[1];
+    
+    // 打印各区域地址
+    std::cout << "代码段（main函数）: " << reinterpret_cast<void*>(&main) << std::endl;
+    std::cout << "数据段（已初始化全局变量）: " << reinterpret_cast<void*>(&global_init) << std::endl;
+    std::cout << "BSS段（未初始化全局变量）: " << reinterpret_cast<void*>(&global_uninit) << std::endl;
+    std::cout << "堆（new char[1]）: " << reinterpret_cast<void*>(heap_var) << std::endl;
+    std::cout << "栈（局部变量）: " << reinterpret_cast<void*>(&stack_var) << std::endl;
+    
+    delete[] heap_var;
+    return 0;
+}</code></pre>
+                    </div>
+                    <p class="text-gray-600 text-sm mt-2">运行程序后，可以观察到地址从低到高的分布符合上述布局顺序</p>
+                </div>
+            </div>
+
+            <!-- 知识点卡片6 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="linux">
+                <h2 class="text-xl font-bold mb-4 text-primary">6. Linux守护进程(Daemon)</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">什么是守护进程？需要先后调用哪些系统调用才能让一个进程成为一个地道的守护进程？（这个当然不需要背下来，能说出其中几个即可）。</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
+                    <p class="text-gray-700 mb-2"><span class="font-medium">守护进程概念：</span>守护进程是在后台运行的特殊进程，独立于控制终端，通常在系统启动时开始运行，在系统关闭时终止。它们用于执行周期性任务或提供持续服务（如web服务器、数据库服务等）。</p>
+                    
+                    <p class="text-gray-700 mb-2"><span class="font-medium">创建守护进程的关键步骤：</span></p>
+                    <ol class="list-decimal ml-5 text-gray-700">
+                        <li><span class="font-medium">fork()：</span>创建子进程，然后父进程退出，使子进程成为孤儿进程，由init进程（或systemd）收养</li>
+                        <li><span class="font-medium">setsid()：</span>创建新的会话，使进程脱离原终端控制，成为新会话的领头进程</li>
+                        <li><span class="font-medium">忽略SIGHUP信号：</span>防止在会话领头进程终止时收到该信号</li>
+                        <li><span class="font-medium">再次fork()：</span>（可选）确保进程不是会话领头进程，避免意外获得终端控制</li>
+                        <li><span class="font-medium">chdir()：</span>改变工作目录（通常改为根目录/），避免占用可卸载的文件系统</li>
+                        <li><span class="font-medium">umask()：</span>重置文件权限掩码，确保创建文件时的权限可控</li>
+                        <li><span class="font-medium">关闭文件描述符：</span>关闭标准输入、输出和错误描述符（stdin, stdout, stderr）</li>
+                        <li><span class="font-medium">重定向文件描述符：</span>（可选）将标准描述符重定向到/dev/null或日志文件</li>
+                    </ol>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">代码示例：创建守护进程</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <unistd.h>
+#include <signal.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+void daemonize() {
+    // 第一步：fork并让父进程退出
+    pid_t pid = fork();
+    if (pid < 0) {
+        perror("fork failed");
+        exit(EXIT_FAILURE);
+    }
+    if (pid > 0) {
+        exit(EXIT_SUCCESS); // 父进程退出
+    }
+    
+    // 第二步：创建新会话
+    if (setsid() < 0) {
+        perror("setsid failed");
+        exit(EXIT_FAILURE);
+    }
+    
+    // 忽略SIGHUP信号
+    signal(SIGHUP, SIG_IGN);
+    
+    // 第三步：再次fork，确保不是会话领头进程
+    pid = fork();
+    if (pid < 0) {
+        perror("fork failed");
+        exit(EXIT_FAILURE);
+    }
+    if (pid > 0) {
+        exit(EXIT_SUCCESS);
+    }
+    
+    // 第四步：改变工作目录
+    if (chdir("/") < 0) {
+        perror("chdir failed");
+        exit(EXIT_FAILURE);
+    }
+    
+    // 第五步：重置文件权限掩码
+    umask(0);
+    
+    // 第六步：关闭所有文件描述符
+    for (int fd = sysconf(_SC_OPEN_MAX); fd >= 0; fd--) {
+        close(fd);
+    }
+    
+    // 第七步：重定向标准IO到/dev/null
+    int devnull = open("/dev/null", O_RDWR);
+    if (devnull < 0) {
+        exit(EXIT_FAILURE);
+    }
+    dup2(devnull, STDIN_FILENO);
+    dup2(devnull, STDOUT_FILENO);
+    dup2(devnull, STDERR_FILENO);
+    close(devnull);
+}
+
+// 守护进程主逻辑
+void daemon_main() {
+    // 这里实现守护进程的核心功能
+    // 例如：周期性任务、服务监听等
+    while (1) {
+        sleep(60); // 模拟工作
+    }
+}
+
+int main() {
+    daemonize();
+    daemon_main();
+    return 0;
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识点卡片7 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="performance">
+                <h2 class="text-xl font-bold mb-4 text-primary">7. CPU热点分析</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">如何发现程序中的CPU热点（Hotspot）？你使用过哪个/些性能剖析（profiling）工具？介绍一下其使用方法。</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
+                    <p class="text-gray-700 mb-2"><span class="font-medium">CPU热点概念：</span>CPU热点指程序中消耗CPU时间最多的函数或代码片段，通常是性能优化的重点目标。</p>
+                    
+                    <p class="text-gray-700 mb-2"><span class="font-medium">常用性能剖析工具：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li><span class="font-medium">perf：</span>Linux内核自带的性能分析工具，功能强大，支持多种事件类型</li>
+                        <li><span class="font-medium">gprof：</span>GNU性能分析工具，适合简单程序，需要编译时添加-pg选项</li>
+                        <li><span class="font-medium">gperftools：</span>Google性能工具集，包含CPU剖析器和堆分析器</li>
+                        <li><span class="font-medium">Intel VTune：</span>Intel提供的性能分析工具，适合Intel平台深度优化</li>
+                    </ul>
+                    
+                    <p class="text-gray-700"><span class="font-medium">perf工具使用方法：</span>perf是最常用的工具之一，支持采样、事件计数、调用图分析等功能，无需重新编译程序，使用灵活。</p>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">perf使用示例</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="bash p-4 text-sm overflow-x-auto"># 1. 基本CPU采样，记录程序运行期间的CPU事件
+perf record -g ./my_program  # -g 记录调用栈
+
+# 2. 查看分析结果
+perf report  # 交互式查看热点函数
+
+# 3. 实时查看系统级CPU热点
+perf top
+
+# 4. 针对特定PID进行采样
+perf record -g -p 12345  # 12345是进程ID
+
+# 5. 生成调用图
+perf record -g --call-graph dwarf ./my_program
+perf script | c++filt | gprof2dot -f perf | dot -Tpng -o callgraph.png</code></pre>
+                    </div>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="bash p-4 text-sm overflow-x-auto"># gprof使用示例（需要重新编译）
+g++ -pg -o my_program my_program.cpp  # 编译时添加-pg选项
+./my_program  # 运行程序，生成gmon.out文件
+gprof ./my_program gmon.out  # 分析结果
+gprof ./my_program gmon.out --graph  # 生成图形化报告</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识点卡片8 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="performance">
+                <h2 class="text-xl font-bold mb-4 text-primary">8. 内存错误检测</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">在Linux中如何发现程序中的内存泄漏和非法内存访问？你一般是怎么做的？请举例说明如何使用Valgrind的memcheck工具来检测C++程序中的内存错误，以及如何让Valgrind更好地理解STL和智能指针？</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
+                    <p class="text-gray-700 mb-2"><span class="font-medium">内存问题类型：</span>包括内存泄漏（未释放不再使用的内存）、越界访问（读写超出分配范围的内存）、使用已释放内存（悬空指针）、重复释放内存等。</p>
+                    
+                    <p class="text-gray-700 mb-2"><span class="font-medium">常用检测工具：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li><span class="font-medium">Valgrind (memcheck)：</span>最常用的内存调试工具，能检测多种内存错误</li>
+                        <li><span class="font-medium">AddressSanitizer (ASAN)：</span>编译器内置的内存错误检测器，速度比Valgrind快</li>
+                        <li><span class="font-medium">LeakSanitizer (LSAN)：</span>专门检测内存泄漏的工具，常与ASAN一起使用</li>
+                        <li><span class="font-medium">mtrace：</span>GNU C库提供的内存分配跟踪工具</li>
+                    </ul>
+                    
+                    <p class="text-gray-700"><span class="font-medium">Valgrind与C++：</span>默认情况下，Valgrind可能无法完全理解C++的STL容器和智能指针，需要特殊处理才能获得准确结果。</p>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">Valgrind使用示例</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="bash p-4 text-sm overflow-x-auto"># 基本用法：检测内存错误和泄漏
+valgrind --leak-check=full --show-leak-kinds=all ./my_program
+
+# 更详细的输出，包括每个泄漏的栈跟踪
+valgrind --leak-check=full --track-origins=yes --verbose ./my_program
+
+# 为C++程序提供更好的支持
+valgrind --leak-check=full --gen-suppressions=all \
+         --suppressions=/usr/lib/valgrind/default.supp \
+         ./my_program</code></pre>
+                    </div>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="bash p-4 text-sm overflow-x-auto"># 让Valgrind更好地支持STL和智能指针
+# 1. 编译时启用调试符号
+g++ -g -O0 -o my_program my_program.cpp
+
+# 2. 使用最新版本的Valgrind（支持C++11及以上）
+# 3. 创建自定义抑制文件处理已知的STL假阳性
+# 创建一个suppressions.txt文件，包含类似以下内容：
+# {
+#    <STL_vector_leak>
+#    Memcheck:Leak
+#    ...
+#    fun:operator new(unsigned long)
+#    ...
+# }
+
+# 使用自定义抑制文件
+valgrind --leak-check=full --suppressions=suppressions.txt ./my_program</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识点卡片9 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="linux">
+                <h2 class="text-xl font-bold mb-4 text-primary">9. 文件描述符(FD)管理</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">什么是文件描述符？它的最大值由什么决定？如何修改？如果遇到"Too many open files"错误，如何排查和解决？如何利用RAII思想设计文件描述符的封装类，以避免泄漏？</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
+                    <p class="text-gray-700 mb-2"><span class="font-medium">文件描述符概念：</span>文件描述符是Linux系统中用于标识打开文件的非负整数，是内核维护的打开文件表的索引。它不仅用于普通文件，还用于管道、套接字、设备等I/O资源。</p>
+                    
+                    <p class="text-gray-700 mb-2"><span class="font-medium">最大值限制：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li>进程级限制：每个进程可以打开的最大文件描述符数，通过ulimit -n查看，默认通常是1024</li>
+                        <li>系统级限制：整个系统可以打开的最大文件描述符总数，通过/proc/sys/fs/file-max查看</li>
+                    </ul>
+                    
+                    <p class="text-gray-700 mb-2"><span class="font-medium">"Too many open files"排查与解决：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li>使用lsof -p <pid>查看特定进程打开的文件描述符</li>
+                        <li>使用ulimit -n <number>临时修改进程限制</li>
+                        <li>修改/etc/security/limits.conf永久调整用户级限制</li>
+                        <li>修改/proc/sys/fs/file-max或/etc/sysctl.conf调整系统级限制</li>
+                        <li>检查代码中是否存在文件描述符未关闭的泄漏问题</li>
+                    </ul>
+                    
+                    <p class="text-gray-700"><span class="font-medium">RAII封装：</span>利用C++的RAII（资源获取即初始化）思想，将文件描述符封装在类中，构造函数打开资源，析构函数自动关闭资源，避免手动管理带来的泄漏风险。</p>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">代码示例：RAII文件描述符封装</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <unistd.h>
+#include <fcntl.h>
+#include <stdexcept>
+#include <utility>
+
+// RAII风格的文件描述符封装类
+class FileDescriptor {
+private:
+    int fd_;  // 存储文件描述符
+    
+    // 禁止拷贝构造和拷贝赋值
+    FileDescriptor(const FileDescriptor&) = delete;
+    FileDescriptor& operator=(const FileDescriptor&) = delete;
+    
+public:
+    // 构造函数：打开文件并获取描述符
+    FileDescriptor(const char* path, int flags, mode_t mode = 0644) {
+        fd_ = open(path, flags, mode);
+        if (fd_ == -1) {
+            throw std::runtime_error("Failed to open file");
+        }
+    }
+    
+    // 移动构造函数
+    FileDescriptor(FileDescriptor&& other) noexcept : fd_(other.fd_) {
+        other.fd_ = -1;  // 转移所有权后，原对象不再拥有描述符
+    }
+    
+    // 移动赋值运算符
+    FileDescriptor& operator=(FileDescriptor&& other) noexcept {
+        if (this != &other) {
+            close();  // 关闭当前描述符
+            fd_ = other.fd_;
+            other.fd_ = -1;
+        }
+        return *this;
+    }
+    
+    // 析构函数：自动关闭文件描述符
+    ~FileDescriptor() {
+        close();
+    }
+    
+    // 关闭文件描述符
+    void close() {
+        if (fd_ != -1) {
+            ::close(fd_);  // 调用系统close函数
+            fd_ = -1;
+        }
+    }
+    
+    // 获取原始文件描述符
+    int get() const {
+        return fd_;
+    }
+    
+    // 重载*运算符
+    int operator*() const {
+        return fd_;
+    }
+    
+    // 判断是否有效
+    explicit operator bool() const {
+        return fd_ != -1;
+    }
+};
+
+// 使用示例
+void use_file() {
+    try {
+        // 打开文件，离开作用域时自动关闭
+        FileDescriptor fd("example.txt", O_RDWR | O_CREAT, 0644);
+        
+        // 使用文件描述符进行操作
+        if (fd) {
+            // 执行读写操作...
+        }
+        
+        // 不需要手动调用close()
+    } catch (const std::exception& e) {
+        // 处理错误
+    }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识点卡片10 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="cpp">
+                <h2 class="text-xl font-bold mb-4 text-primary">10. 多线程编程与死锁检测</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">你写过多线程的程序吗？用的是linux中的pthread api还是C++中的std::thread相关的api？两者有何区别和联系？如果你写的一个程序a正在运行，你怀疑它发生了死锁，在不杀死这个进程的情况下，你如何确认它是否死锁？</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
+                    <p class="text-gray-700 mb-2"><span class="font-medium">pthread与std::thread对比：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700 mb-4">
+                        <li><span class="font-medium">联系：</span>
+                            <ul class="list-circle ml-5">
+                                <li>std::thread在Linux平台通常是pthread的封装</li>
+                                <li>都遵循POSIX线程模型的基本概念（互斥锁、条件变量等）</li>
+                                <li>可以混合使用（通过std::thread::native_handle()获取pthread_t）</li>
+                            </ul>
+                        </li>
+                        <li><span class="font-medium">区别：</span>
+                            <ul class="list-circle ml-5">
+                                <li>pthread是C语言API，函数式接口；std::thread是C++类，面向对象接口</li>
+                                <li>pthread需要手动管理线程生命周期（创建/销毁）；std::thread通过RAII自动管理</li>
+                                <li>pthread错误通过返回值表示；std::thread通过异常机制报告错误</li>
+                                <li>std::thread集成了C++特性（如lambda、函数对象），使用更方便</li>
+                                <li>pthread可移植性限于POSIX系统；std::thread是C++标准，理论上可移植到所有C++支持平台</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    
+                    <p class="text-gray-700 mb-2"><span class="font-medium">死锁检测方法：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700">
+                        <li>使用pstack/pidof查看进程的线程调用栈，分析是否存在互相等待</li>
+                        <li>使用gdb attach到进程，查看所有线程状态和调用栈</li>
+                        <li>使用专门的工具如helgrind（Valgrind工具集）检测潜在的死锁</li>
+                        <li>在程序中嵌入死锁检测机制（如定时检查线程状态）</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">死锁检测示例</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="bash p-4 text-sm overflow-x-auto"># 使用pstack查看线程调用栈
+pstack <pid>  # <pid>是进程ID
+
+# 使用gdb检测死锁
+gdb -p <pid>  # 附加到运行中的进程
+
+# 在gdb中执行以下命令
+(gdb) info threads  # 查看所有线程
+(gdb) thread <thread-id>  # 切换到特定线程
+(gdb) bt  # 查看当前线程的调用栈
+(gdb) thread apply all bt  # 查看所有线程的调用栈
+
+# 使用Valgrind的helgrind工具检测潜在死锁
+valgrind --tool=helgrind ./my_program</code></pre>
+                    </div>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <thread>
+#include <mutex>
+#include <iostream>
+
+std::mutex mtx1, mtx2;
+
+// 可能导致死锁的函数
+void thread_func1() {
+    std::lock_guard<std::mutex> lock1(mtx1);
+    std::cout << "Thread 1 locked mtx1" << std::endl;
+    
+    // 模拟一些工作
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    
+    std::lock_guard<std::mutex> lock2(mtx2);
+    std::cout << "Thread 1 locked mtx2" << std::endl;
+}
+
+void thread_func2() {
+    std::lock_guard<std::mutex> lock2(mtx2);
+    std::cout << "Thread 2 locked mtx2" << std::endl;
+    
+    // 模拟一些工作
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    
+    std::lock_guard<std::mutex> lock1(mtx1);
+    std::cout << "Thread 2 locked mtx1" << std::endl;
+}
+
+int main() {
+    std::thread t1(thread_func1);
+    std::thread t2(thread_func2);
+    
+    t1.join();
+    t2.join();
+    
+    return 0;
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识点卡片11 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="network">
+                <h2 class="text-xl font-bold mb-4 text-primary">11. IO多路复用与异步API</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">select,poll,epoll，其中哪些是同步api、哪些是异步api？你在linux中使用过异步api吗？在C++中是如何封装的（使用libevent、libuv、asio还是自己封装的）？（你选择的方案）采用的是reactor还是proactor？它们有何区别？你对比过两者的性能差异吗？</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
+                    <p class="text-gray-700 mb-2"><span class="font-medium">同步与异步API：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700 mb-4">
+                        <li>select、poll、epoll均为<span class="font-medium">同步API</span></li>
+                        <li>它们只是提供了I/O多路复用能力，能同时监控多个文件描述符的状态</li>
+                        <li>当I/O事件就绪后，仍需应用程序主动调用read/write等函数来完成实际I/O操作</li>
+                        <li>Linux中没有真正意义上的异步I/O API，AIO（异步I/O）实现有限且不常用</li>
+                    </ul>
+                    
+                    <p class="text-gray-700 mb-2"><span class="font-medium">常用封装库：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li><span class="font-medium">libevent：</span>跨平台事件通知库，支持select、poll、epoll等，采用Reactor模式</li>
+                        <li><span class="font-medium">libuv：</span>跨平台异步I/O库，Node.js底层依赖，采用Reactor模式</li>
+                        <li><span class="font-medium">Boost.Asio/Asio：</span>C++网络库，支持多种I/O模型，可配置为Reactor或Proactor模式</li>
+                    </ul>
+                    
+                    <p class="text-gray-700 mb-2"><span class="font-medium">Reactor与Proactor模式区别：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700">
+                        <li><span class="font-medium">Reactor模式：</span>
+                            <ul class="list-circle ml-5">
+                                <li>当I/O事件就绪时通知应用程序</li>
+                                <li>由应用程序负责完成实际的读写操作</li>
+                                <li>实现简单，性能良好，应用广泛</li>
+                            </ul>
+                        </li>
+                        <li><span class="font-medium">Proactor模式：</span>
+                            <ul class="list-circle ml-5">
+                                <li>内核完成实际的读写操作后才通知应用程序</li>
+                                <li>应用程序直接处理已经读取到缓冲区的数据</li>
+                                <li>实现复杂，依赖操作系统支持，理论上更高效</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">代码示例：基于epoll的Reactor模式</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <sys/epoll.h>
+#include <unistd.h>
+#include <vector>
+#include <iostream>
+#include <cstring>
+
+class Reactor {
+private:
+    int epoll_fd_;
+    static const int MAX_EVENTS = 10;
+    struct epoll_event events_[MAX_EVENTS];
+    
+public:
+    Reactor() {
+        epoll_fd_ = epoll_create1(0);
+        if (epoll_fd_ == -1) {
+            perror("epoll_create1");
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    ~Reactor() {
+        close(epoll_fd_);
+    }
+    
+    // 添加文件描述符到监控列表
+    void add_fd(int fd, uint32_t events) {
+        struct epoll_event ev;
+        memset(&ev, 0, sizeof(ev));
+        ev.data.fd = fd;
+        ev.events = events;
+        
+        if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, fd, &ev) == -1) {
+            perror("epoll_ctl: add");
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    // 事件循环
+    void run() {
+        while (true) {
+            int nfds = epoll_wait(epoll_fd_, events_, MAX_EVENTS, -1);
+            if (nfds == -1) {
+                perror("epoll_wait");
+                exit(EXIT_FAILURE);
+            }
+            
+            for (int i = 0; i < nfds; ++i) {
+                if (events_[i].events & EPOLLIN) {
+                    handle_read(events_[i].data.fd);
+                }
+                if (events_[i].events & EPOLLOUT) {
+                    handle_write(events_[i].data.fd);
+                }
+                // 处理其他事件...
+            }
+        }
+    }
+    
+private:
+    // 处理读事件
+    void handle_read(int fd) {
+        char buffer[1024];
+        ssize_t n = read(fd, buffer, sizeof(buffer) - 1);
+        if (n == -1) {
+            perror("read");
+            return;
+        }
+        if (n == 0) {
+            std::cout << "Connection closed" << std::endl;
+            close(fd);
+            return;
+        }
+        
+        buffer[n] = '\0';
+        std::cout << "Received: " << buffer << std::endl;
+        // 处理数据...
+    }
+    
+    // 处理写事件
+    void handle_write(int fd) {
+        // 处理写操作...
+    }
+};
+
+// 使用示例
+int main() {
+    // 创建Reactor实例
+    Reactor reactor;
+    
+    // 添加要监控的文件描述符，例如标准输入
+    reactor.add_fd(STDIN_FILENO, EPOLLIN);
+    
+    // 启动事件循环
+    reactor.run();
+    
+    return 0;
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识点卡片12 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="linux">
+                <h2 class="text-xl font-bold mb-4 text-primary">12. 共享内存与C++对象</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">使用共享内存（Shared Memory）在Linux上进行进程间通信时，能否直接在其中创建C++对象（如std::string,std::vector）？会有什么潜在风险和陷阱？（例如，静态变量、虚函数表指针、内部指针等问题）。如何安全地实现？</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
+                    <p class="text-gray-700 mb-2"><span class="font-medium">直接创建C++对象的风险：</span>不建议在共享内存中直接创建标准C++对象（如std::string、std::vector等），主要原因如下：</p>
+                    
+                    <ul class="list-disc ml-5 text-gray-700 mb-4">
+                        <li><span class="font-medium">内部指针问题：</span>
+                            <p class="mt-1">STL容器通常包含指向堆内存的内部指针（如std::string的char*、std::vector的T*）。这些指针是进程地址空间内的虚拟地址，在其他进程中可能指向无效内存或完全不同的数据。</p>
+                        </li>
+                        <li><span class="font-medium">虚函数表指针：</span>
+                            <p class="mt-1">包含虚函数的类有虚表指针（vptr），指向进程私有地址空间中的虚函数表（vtable）。其他进程中的相同类可能有不同的虚表地址，导致访问错误。</p>
+                        </li>
+                        <li><span class="font-medium">静态成员变量：</span>
+                            <p class="mt-1">类的静态成员变量存储在进程私有内存中，共享内存中的对象访问静态成员时会访问各自进程中的副本，导致状态不一致。</p>
+                        </li>
+                        <li><span class="font-medium">内存分配器差异：</span>
+                            <p class="mt-1">不同进程可能使用不同的内存分配器或堆布局，对象的动态内存操作（如扩容）可能在错误的地址空间分配内存。</p>
+                        </li>
+                        <li><span class="font-medium">构造函数/析构函数问题：</span>
+                            <p class="mt-1">需要确保对象的构造函数和析构函数在所有访问共享内存的进程中正确执行，否则可能导致初始化不完整或资源泄漏。</p>
+                        </li>
+                    </ul>
+                    
+                    <p class="text-gray-700 mb-2"><span class="font-medium">安全实现方法：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700">
+                        <li>使用POD（Plain Old Data）类型或简单结构体，不包含任何指针或引用</li>
+                        <li>如需复杂数据结构，使用偏移量代替指针，手动管理内存布局</li>
+                        <li>实现自定义的、基于共享内存的分配器，供容器使用</li>
+                        <li>确保所有进程使用相同的编译器、编译选项和ABI，避免内存布局差异</li>
+                        <li>使用序列化/反序列化机制，在进程间传递对象数据而非直接共享对象</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">代码示例：共享内存中的安全数据结构</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <cstring>
+#include <iostream>
+#include <stdexcept>
+
+// 共享内存中安全使用的POD结构体
+struct SharedData {
+    static const int MAX_STR_LEN = 256;
+    char name[MAX_STR_LEN];  // 固定大小字符数组，不使用指针
+    int id;
+    double value;
+    // 不包含虚函数、指针或复杂类型
+};
+
+// 共享内存管理器
+class SharedMemory {
+private:
+    int shmid_;
+    void* shmaddr_;
+    bool is_owner_;
+    
+public:
+    // 创建或获取共享内存
+    SharedMemory(key_t key, size_t size, bool create = false) : is_owner_(create) {
+        if (create) {
+            // 创建新的共享内存段
+            shmid_ = shmget(key, size, IPC_CREAT | 0666);
+        } else {
+            // 获取已存在的共享内存段
+            shmid_ = shmget(key, size, 0666);
+        }
+        
+        if (shmid_ == -1) {
+            throw std::runtime_error("Failed to get shared memory");
+        }
+        
+        // 附加共享内存到进程地址空间
+        shmaddr_ = shmat(shmid_, nullptr, 0);
+        if (shmaddr_ == (void*)-1) {
+            throw std::runtime_error("Failed to attach shared memory");
+        }
+    }
+    
+    ~SharedMemory() {
+        // 分离共享内存
+        shmdt(shmaddr_);
+        
+        // 如果是创建者，删除共享内存
+        if (is_owner_) {
+            shmctl(shmid_, IPC_RMID, nullptr);
+        }
+    }
+    
+    // 获取共享内存中的数据指针
+    template <typename T>
+    T* get_data() {
+        return static_cast<T*>(shmaddr_);
+    }
+};
+
+// 使用示例
+int main() {
+    const key_t SHM_KEY = 12345;
+    const size_t SHM_SIZE = sizeof(SharedData);
+    
+    try {
+        // 创建共享内存（第一个进程）
+        SharedMemory shm(SHM_KEY, SHM_SIZE, true);
+        
+        // 获取数据指针并初始化
+        SharedData* data = shm.get_data<SharedData>();
+        std::strncpy(data->name, "Example", SharedData::MAX_STR_LEN - 1);
+        data->id = 1;
+        data->value = 3.14;
+        
+        std::cout << "Data written to shared memory. Press enter to exit..." << std::endl;
+        std::cin.get();
+        
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    }
+    
+    return 0;
+}</code></pre>
+                    </div>
+                    
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <iostream>
+#include <stdexcept>
+#include "shared_memory.h"  // 包含上面定义的SharedData和SharedMemory
+
+// 共享内存中使用的简单数组结构（替代vector）
+struct SharedArray {
+    static const int MAX_SIZE = 100;
+    int data[MAX_SIZE];
+    int count;  // 实际元素数量
+    
+    // 提供简单的数组操作方法
+    void add(int value) {
+        if (count < MAX_SIZE) {
+            data[count++] = value;
+        }
+    }
+    
+    int get(int index) const {
+        if (index >= 0 && index < count) {
+            return data[index];
+        }
+        return -1;  // 错误值
+    }
+};
+
+// 读取共享内存的示例
+int main() {
+    const key_t SHM_KEY = 12345;
+    const size_t SHM_SIZE = sizeof(SharedData);
+    
+    try {
+        // 获取已存在的共享内存（第二个进程）
+        SharedMemory shm(SHM_KEY, SHM_SIZE, false);
+        
+        // 读取数据
+        SharedData* data = shm.get_data<SharedData>();
+        std::cout << "Read from shared memory:" << std::endl;
+        std::cout << "Name: " << data->name << std::endl;
+        std::cout << "ID: " << data->id << std::endl;
+        std::cout << "Value: " << data->value << std::endl;
+        
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    }
+    
+    return 0;
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识点卡片13 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="cpp">
+                <h2 class="text-xl font-bold mb-4 text-primary">13. C++协程与epoll集成</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">现代C++协程（Coroutines）是协作式调度的。当一个C++协程在Linux上通过co_await挂起时，底层的执行线程（pthread）在做什么？这与你所理解的epoll事件循环有何相似与不同之处？协程如何与现有的基于epoll的Reactor网络库集成？</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
+                    <p class="text-gray-700 mb-2"><span class="font-medium">协程挂起时的线程状态：</span></p>
+                    <p class="text-gray-700 mb-2">当C++协程通过co_await挂起时，协程的执行被暂停，其状态（寄存器、栈帧等）被保存。此时，原来执行该协程的pthread线程会被释放，可以去执行其他就绪的协程或任务。线程并不会阻塞等待，而是继续处理其他工作，实现了高效的资源利用。</p>
+                    
+                    <p class="text-gray-700 mb-2"><span class="font-medium">与epoll事件循环的比较：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li><span class="font-medium">相似之处：</span>
+                            <ul class="list-circle ml-5">
+                                <li>都实现了等待操作时的资源高效利用</li>
+                                <li>都避免了传统阻塞I/O导致的线程闲置问题</li>
+                                <li>都支持在单一（或少量）线程上处理大量并发操作</li>
+                            </ul>
+                        </li>
+                        <li><span class="font-medium">不同之处：</span>
+                            <ul class="list-circle ml-5">
+                                <li>epoll是内核级别的I/O事件通知机制；协程是用户态的调度机制</li>
+                                <li>epoll关注I/O事件就绪通知；协程关注执行流程的暂停与恢复</li>
+                                <li>epoll需要显式管理文件描述符和事件；协程通过co_await隐式处理</li>
+                                <li>epoll的回调函数执行在事件循环线程；协程恢复后继续之前的执行流</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    
+                    <p class="text-gray-700"><span class="font-medium">协程与epoll集成方式：</span>将epoll事件作为可等待对象（awaitable），当协程co_await一个I/O操作时，注册相应的epoll事件并挂起。当事件就绪时，epoll通知反应堆（Reactor），反应堆唤醒对应的协程继续执行。这种方式结合了epoll的高效I/O多路复用和协程的简洁编程模型。</p>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">代码示例：协程与epoll集成</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <coroutine>
+#include <sys/epoll.h>
+#include <unistd.h>
+#include <iostream>
+#include <cstring>
+#include <vector>
+#include <thread>
+
+// 前向声明
+class EpollContext;
+
+// 可等待对象：等待文件描述符的读事件
+struct AwaitableFdRead {
+    EpollContext& epoll_ctx;
+    int fd;
+    char* buffer;
+    size_t buffer_size;
+    ssize_t result;
+    
+    AwaitableFdRead(EpollContext& ctx, int fd, char* buf, size_t size)
+        : epoll_ctx(ctx), fd(fd), buffer(buf), buffer_size(size), result(-1) {}
+    
+    // 协程挂起前的操作：注册epoll事件
+    bool await_ready() const noexcept { return false; }
+    
+    // 挂起协程，保存回调
+    void await_suspend(std::coroutine_handle<> handle);
+    
+    // 协程恢复时的操作：执行读操作
+    ssize_t await_resume() noexcept { return result; }
+};
+
+// Epoll上下文管理
+// Epoll上下文管理
+class EpollContext {
+private:
+    int epoll_fd_;
+    static const int MAX_EVENTS = 100;
+    struct EventData {
+        std::coroutine_handle<> handle;
+        AwaitableFdRead* awaitable;
+    };
+    
+public:
+    EpollContext() {
+        epoll_fd_ = epoll_create1(0);
+        if (epoll_fd_ == -1) {
+            perror("epoll_create1");
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    ~EpollContext() {
+        close(epoll_fd_);
+    }
+    
+    // 注册读事件
+    void register_read(int fd, std::coroutine_handle<> handle, AwaitableFdRead* awaitable) {
+        struct epoll_event ev;
+        memset(&ev, 0, sizeof(ev));
+        
+        // 存储协程句柄和可等待对象
+        EventData* data = new EventData{handle, awaitable};
+        ev.data.ptr = data;
+        ev.events = EPOLLIN;
+        
+        if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, fd, &ev) == -1) {
+            perror("epoll_ctl: add");
+            delete data;
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+    // 移除事件
+    void unregister(int fd) {
+        epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, fd, nullptr);
+    }
+    
+    // 事件循环
+    void run_event_loop() {
+        while (true) {
+            struct epoll_event events[MAX_EVENTS];
+            int nfds = epoll_wait(epoll_fd_, events, MAX_EVENTS, -1);
+            if (nfds == -1) {
+                perror("epoll_wait");
+                exit(EXIT_FAILURE);
+            }
+            
+            for (int i = 0; i < nfds; ++i) {
+                EventData* data = static_cast<EventData*>(events[i].data.ptr);
+                
+                // 执行读操作
+                if (events[i].events & EPOLLIN) {
+                    data->awaitable->result = read(data->awaitable->fd, 
+                                                data->awaitable->buffer, 
+                                                data->awaitable->buffer_size);
+                }
+                
+                // 移除事件
+                unregister(data->awaitable->fd);
+                
+                // 恢复协程执行
+                data->handle.resume();
+                
+                // 清理
+                delete data;
+            }
+        }
+    }
+    
+    // 创建读操作可等待对象
+    AwaitableFdRead read(int fd, char* buffer, size_t size) {
+        return AwaitableFdRead(*this, fd, buffer, size);
+    }
+};
+
+// 实现await_suspend
+void AwaitableFdRead::await_suspend(std::coroutine_handle<> handle) {
+    epoll_ctx.register_read(fd, handle, this);
+}
+
+// 协程任务类型
+struct Task {
+    struct promise_type {
+        Task get_return_object() { return {}; }
+        std::suspend_never initial_suspend() { return {}; }
+        std::suspend_never final_suspend() noexcept { return {}; }
+        void return_void() {}
+        void unhandled_exception() { std::terminate(); }
+    };
+};
+
+// 示例协程：读取标准输入
+Task read_from_stdin(EpollContext& epoll) {
+    char buffer[1024];
+    std::cout << "Waiting for input..." << std::endl;
+    
+    // 等待并读取输入
+    ssize_t n = co_await epoll.read(STDIN_FILENO, buffer, sizeof(buffer) - 1);
+    
+    if (n > 0) {
+        buffer[n] = '\0';
+        std::cout << "Read: " << buffer << std::endl;
+    } else {
+        std::cout << "Read error or EOF" << std::endl;
+    }
+}
+
+int main() {
+    EpollContext epoll;
+    
+    // 启动事件循环线程
+    std::thread event_thread(&EpollContext::run_event_loop, &epoll);
+    
+    // 启动协程
+    read_from_stdin(epoll);
+    
+    // 等待事件循环线程
+    event_thread.join();
+    
+    return 0;
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识点卡片14 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="cpp">
+                <h2 class="text-xl font-bold mb-4 text-primary">14. 系统调用错误处理</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">在C++代码中，一个系统调用（如read,write）失败返回-1时，你是如何处理这个错误的？是检查errno并抛出异常，还是返回错误码？两者分别有什么优劣？</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
+                    <p class="text-gray-700 mb-2">系统调用失败时的错误处理是C++程序健壮性的重要组成部分，主要有两种处理方式：检查errno并抛出异常，或返回错误码。</p>
+                    
+                    <p class="text-gray-700 mb-2"><span class="font-medium">检查errno并抛出异常：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700 mb-4">
+                        <li><span class="font-medium">优势：</span>
+                            <ul class="list-circle ml-5">
+                                <li>错误处理与正常逻辑分离，代码更清晰，可读性更好</li>
+                                <li>无需手动逐层传递错误，异常会自动向上传播到适当的处理点</li>
+                                <li>可以携带丰富的错误信息（错误码、描述、堆栈跟踪等）</li>
+                                <li>符合C++标准库的惯用法，与标准库组件配合更自然</li>
+                            </ul>
+                        </li>
+                        <li><span class="font-medium">劣势：</span>
+                            <ul class="list-circle ml-5">
+                                <li>可能引入一定的性能开销（异常处理机制的代价）</li>
+                                <li>需要确保代码的异常安全性，防止资源泄漏</li>
+                                <li>对于不熟悉异常的开发者，可能难以理解和维护</li>
+                                <li>在某些实时系统或性能敏感场景中可能不适用</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    
+                    <p class="text-gray-700 mb-2"><span class="font-medium">返回错误码：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700 mb-4">
+                        <li><span class="font-medium">优势：</span>
+                            <ul class="list-circle ml-5">
+                                <li>性能更好，没有异常处理的额外开销</li>
+                                <li>逻辑显式，错误处理路径清晰可见</li>
+                                <li>更适合C语言风格的代码或与C库交互</li>
+                                <li>在实时系统或性能敏感场景中更受欢迎</li>
+                            </ul>
+                        </li>
+                        <li><span class="font-medium">劣势：</span>
+                            <ul class="list-circle ml-5">
+                                <li>容易被忽略（开发者忘记检查返回值）</li>
+                                <li>错误需要手动逐层传递，增加代码复杂度</li>
+                                <li>错误信息有限，通常只能传递错误码</li>
+                                <li>正常逻辑与错误处理混杂，代码可读性差</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    
+                    <p class="text-gray-700"><span class="font-medium">最佳实践：</span>通常建议在应用层代码中使用异常处理，在底层库中使用错误码。关键操作必须检查错误，不可忽略任何系统调用的返回值。对于可能频繁失败的操作，可考虑使用错误码以避免异常开销；对于不常失败但需要复杂错误处理的操作，使用异常更合适。</p>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">代码示例：两种错误处理方式</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <unistd.h>
+#include <errno.h>
+#include <string>
+#include <stdexcept>
+#include <iostream>
+
+// 错误码枚举
+enum class ErrorCode {
+    SUCCESS = 0,
+    READ_FAILED,
+    WRITE_FAILED,
+    INVALID_PARAM
+};
+
+// 错误信息结构体
+struct ErrorInfo {
+    ErrorCode code;
+    std::string message;
+    int system_errno;
+};
+
+// 方式1：返回错误码
+ErrorInfo read_with_error_code(int fd, char* buffer, size_t size) {
+    if (buffer == nullptr || size == 0) {
+        return {ErrorCode::INVALID_PARAM, "Invalid parameters", 0};
+    }
+    
+    ssize_t n = read(fd, buffer, size);
+    if (n == -1) {
+        return {
+            ErrorCode::READ_FAILED, 
+            "Read operation failed", 
+            errno
+        };
+    }
+    
+    return {ErrorCode::SUCCESS, "Success", 0};
+}
+
+// 方式2：抛出异常
+class SystemError : public std::runtime_error {
+private:
+    int errno_;
+    std::string operation_;
+    
+public:
+    SystemError(const std::string& op, int err)
+        : std::runtime_error(op + " failed: " + std::strerror(err)),
+          errno_(err), operation_(op) {}
+          
+    int get_errno() const { return errno_; }
+    const std::string& get_operation() const { return operation_; }
+};
+
+ssize_t read_with_exception(int fd, char* buffer, size_t size) {
+    if (buffer == nullptr || size == 0) {
+        throw std::invalid_argument("Invalid parameters for read");
+    }
+    
+    ssize_t n = read(fd, buffer, size);
+    if (n == -1) {
+        throw SystemError("read", errno);
+    }
+    
+    return n;
+}
+
+// 使用示例
+int main() {
+    char buffer[1024];
+    int fd = STDIN_FILENO;  // 标准输入
+    
+    // 使用错误码方式
+    std::cout << "Using error code approach:" << std::endl;
+    ErrorInfo err = read_with_error_code(fd, buffer, sizeof(buffer));
+    if (err.code != ErrorCode::SUCCESS) {
+        std::cerr << "Error: " << err.message 
+                  << ", system error: " << std::strerror(err.system_errno) << std::endl;
+    } else {
+        std::cout << "Read " << buffer << std::endl;
+    }
+    
+    // 使用异常方式
+    std::cout << "\nUsing exception approach:" << std::endl;
+    try {
+        ssize_t n = read_with_exception(fd, buffer, sizeof(buffer));
+        std::cout << "Read " << n << " bytes: " << buffer << std::endl;
+    } catch (const SystemError& e) {
+        std::cerr << "System error: " << e.what() 
+                  << " (errno: " << e.get_errno() << ")" << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+    
+    return 0;
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p>C++/Linux面试知识点详解 | 包含全部14个知识点</p>
+            <p class="mt-2 text-sm text-gray-400">代码展示已格式化并支持复制功能</p>
+        </div>
+    </footer>
+
+    <script>
+        // 分类筛选功能
+        document.addEventListener('DOMContentLoaded', () => {
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const cards = document.querySelectorAll('.card');
+
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // 更新按钮样式
+                    filterBtns.forEach(b => {
+                        b.classList.remove('bg-primary', 'text-white');
+                        b.classList.add('bg-gray-200', 'text-dark');
+                    });
+                    btn.classList.remove('bg-gray-200', 'text-dark');
+                    btn.classList.add('bg-primary', 'text-white');
+
+                    // 筛选卡片
+                    const filter = btn.getAttribute('data-filter');
+                    cards.forEach(card => {
+                        if (filter === 'all' || card.getAttribute('data-category') === filter) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        });
+
+        // 代码复制功能
+        function copyCode(button) {
+            // 获取代码块元素
+            const preElement = button.nextElementSibling;
+            const code = preElement.textContent;
+            
+            // 复制到剪贴板
+            navigator.clipboard.writeText(code).then(() => {
+                // 显示复制成功状态
+                const originalText = button.textContent;
+                button.textContent = '已复制';
+                button.classList.add('copied');
+                
+                // 2秒后恢复原状
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败: ', err);
+                button.textContent = '复制失败';
+                
+                setTimeout(() => {
+                    button.textContent = '复制';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
+    

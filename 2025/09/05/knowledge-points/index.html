@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,14 +8,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <!-- 引入代码高亮库 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
     <script>
         // 初始化代码高亮
         document.addEventListener('DOMContentLoaded', () => {
             hljs.highlightAll();
         });
-        
+
         tailwind.config = {
             theme: {
                 extend: {
@@ -74,6 +76,7 @@
         }
     </style>
 </head>
+
 <body class="bg-gray-50 min-h-screen">
     <!-- 顶部导航 -->
     <header class="bg-white shadow-md sticky top-0 z-50">
@@ -83,7 +86,8 @@
                 C++/Linux面试知识点详解
             </h1>
             <div class="mt-3 flex flex-wrap gap-2">
-                <button class="filter-btn active px-3 py-1 rounded-full bg-primary text-white text-sm" data-filter="all">
+                <button class="filter-btn active px-3 py-1 rounded-full bg-primary text-white text-sm"
+                    data-filter="all">
                     全部知识点
                 </button>
                 <button class="filter-btn px-3 py-1 rounded-full bg-gray-200 text-dark text-sm" data-filter="cpp">
@@ -95,8 +99,12 @@
                 <button class="filter-btn px-3 py-1 rounded-full bg-gray-200 text-dark text-sm" data-filter="network">
                     网络编程
                 </button>
-                <button class="filter-btn px-3 py-1 rounded-full bg-gray-200 text-dark text-sm" data-filter="performance">
+                <button class="filter-btn px-3 py-1 rounded-full bg-gray-200 text-dark text-sm"
+                    data-filter="performance">
                     性能优化
+                </button>
+                <button class="filter-btn px-3 py-1 rounded-full bg-gray-200 text-dark text-sm" data-filter="interview">
+                    面试题
                 </button>
             </div>
         </div>
@@ -110,18 +118,24 @@
                 <h2 class="text-xl font-bold mb-4 text-primary">1. Copy On Write (COW) 机制</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">什么是copy on write？C++中如何利用RAII和智能指针实现一个COW的字符串类？Linux中fork()的COW机制是如何影响C++程序内存使用和性能的？</p>
+                    <p class="text-gray-700">什么是copy on
+                        write？C++中如何利用RAII和智能指针实现一个COW的字符串类？Linux中fork()的COW机制是如何影响C++程序内存使用和性能的？</p>
                 </div>
-                
+
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">详细解释</h3>
-                    <p class="text-gray-700 mb-2"><span class="font-medium">Copy On Write (写时复制)</span> 是一种优化技术，核心思想是延迟内存复制操作，只有当需要修改数据时才真正进行复制，从而减少不必要的内存开销。</p>
-                    
-                    <p class="text-gray-700 mb-2"><span class="font-medium">在C++中实现COW字符串：</span>可以使用智能指针（如shared_ptr）管理底层字符数组，读操作时共享指针，写操作时检查引用计数，当计数大于1时进行复制。</p>
-                    
-                    <p class="text-gray-700"><span class="font-medium">fork()的COW影响：</span>fork创建子进程时，内核不会立即复制父进程的内存，而是让父子进程共享同一份内存页表，标记为只读。当任一进程修改内存时，内核才会复制该内存页，这减少了进程创建的初始开销，但可能在后续写操作时带来额外延迟。</p>
+                    <p class="text-gray-700 mb-2"><span class="font-medium">Copy On Write (写时复制)</span>
+                        是一种优化技术，核心思想是延迟内存复制操作，只有当需要修改数据时才真正进行复制，从而减少不必要的内存开销。</p>
+
+                    <p class="text-gray-700 mb-2"><span
+                            class="font-medium">在C++中实现COW字符串：</span>可以使用智能指针（如shared_ptr）管理底层字符数组，读操作时共享指针，写操作时检查引用计数，当计数大于1时进行复制。
+                    </p>
+
+                    <p class="text-gray-700"><span
+                            class="font-medium">fork()的COW影响：</span>fork创建子进程时，内核不会立即复制父进程的内存，而是让父子进程共享同一份内存页表，标记为只读。当任一进程修改内存时，内核才会复制该内存页，这减少了进程创建的初始开销，但可能在后续写操作时带来额外延迟。
+                    </p>
                 </div>
-                
+
                 <div>
                     <h3 class="font-semibold text-lg mb-2">代码示例：COW字符串类</h3>
                     <div class="code-block">
@@ -192,9 +206,11 @@ public:
                 <h2 class="text-xl font-bold mb-4 text-primary">2. 虚函数表内存布局</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">在你所选用的编译器（例如gcc）中，虚函数表的内存布局是怎样的？在Linux下，如何通过gdb调试器或直接解析二进制文件（使用objdump或readelf）来验证一个C++类的内存布局？</p>
+                    <p class="text-gray-700">
+                        在你所选用的编译器（例如gcc）中，虚函数表的内存布局是怎样的？在Linux下，如何通过gdb调试器或直接解析二进制文件（使用objdump或readelf）来验证一个C++类的内存布局？
+                    </p>
                 </div>
-                
+
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">详细解释</h3>
                     <p class="text-gray-700 mb-2"><span class="font-medium">GCC中的虚函数表布局：</span></p>
@@ -205,15 +221,18 @@ public:
                         <li>多继承时，派生类对象会有多个vptr，分别对应不同基类的虚表</li>
                         <li>虚表中可能包含RTTI（运行时类型信息）指针，通常位于虚表的开始或结尾</li>
                     </ul>
-                    
+
                     <p class="text-gray-700 mb-2"><span class="font-medium">验证方法：</span></p>
                     <ul class="list-disc ml-5 text-gray-700">
-                        <li><span class="font-medium">使用gdb：</span>通过`p *object`查看对象布局，`info vtbl object`查看虚函数表，`x/10x vtable_address`查看虚函数地址</li>
-                        <li><span class="font-medium">使用objdump：</span>`objdump -s -j .rodata executable`查看只读数据段，搜索"vtable for ClassName"查找虚表</li>
-                        <li><span class="font-medium">使用readelf：</span>`readelf --symbols executable | grep vtable`查找虚表符号</li>
+                        <li><span class="font-medium">使用gdb：</span>通过`p *object`查看对象布局，`info vtbl object`查看虚函数表，`x/10x
+                            vtable_address`查看虚函数地址</li>
+                        <li><span class="font-medium">使用objdump：</span>`objdump -s -j .rodata
+                            executable`查看只读数据段，搜索"vtable for ClassName"查找虚表</li>
+                        <li><span class="font-medium">使用readelf：</span>`readelf --symbols executable | grep
+                            vtable`查找虚表符号</li>
                     </ul>
                 </div>
-                
+
                 <div>
                     <h3 class="font-semibold text-lg mb-2">代码示例与验证</h3>
                     <div class="code-block">
@@ -249,20 +268,29 @@ public:
                 <h2 class="text-xl font-bold mb-4 text-primary">3. 零拷贝(Zero-Copy)机制</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">零拷贝（Zero-Copy）是什么？Linux中sendfile()等系统调用如何实现零拷贝？在C++网络编程中，如何利用这些系统调用（例如，在传输文件时）来提升性能？与使用传统的read/write方式相比，需要注意什么？</p>
+                    <p class="text-gray-700">
+                        零拷贝（Zero-Copy）是什么？Linux中sendfile()等系统调用如何实现零拷贝？在C++网络编程中，如何利用这些系统调用（例如，在传输文件时）来提升性能？与使用传统的read/write方式相比，需要注意什么？
+                    </p>
                 </div>
-                
+
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">详细解释</h3>
-                    <p class="text-gray-700 mb-2"><span class="font-medium">零拷贝概念：</span>零拷贝是一种IO操作优化技术，目的是减少数据在用户态和内核态之间的拷贝次数，以及CPU参与的数据搬运操作，从而提高数据传输效率。</p>
-                    
-                    <p class="text-gray-700 mb-2"><span class="font-medium">sendfile()实现原理：</span>sendfile()系统调用允许数据直接从文件描述符传输到套接字，整个过程完全在内核态完成，避免了数据在用户态和内核态之间的拷贝。它通过DMA（直接内存访问）将数据从磁盘读取到内核缓冲区，然后直接转发到网络协议栈，最后通过DMA发送到网卡。</p>
-                    
-                    <p class="text-gray-700 mb-2"><span class="font-medium">优势：</span>减少CPU占用、减少内存带宽消耗、降低缓存污染，特别适合大文件传输场景。</p>
-                    
-                    <p class="text-gray-700"><span class="font-medium">注意事项：</span>无法在传输过程中修改数据、需要文件描述符和套接字支持、小数据传输可能因系统调用开销抵消收益、不是所有文件系统和设备都支持。</p>
+                    <p class="text-gray-700 mb-2"><span
+                            class="font-medium">零拷贝概念：</span>零拷贝是一种IO操作优化技术，目的是减少数据在用户态和内核态之间的拷贝次数，以及CPU参与的数据搬运操作，从而提高数据传输效率。
+                    </p>
+
+                    <p class="text-gray-700 mb-2"><span
+                            class="font-medium">sendfile()实现原理：</span>sendfile()系统调用允许数据直接从文件描述符传输到套接字，整个过程完全在内核态完成，避免了数据在用户态和内核态之间的拷贝。它通过DMA（直接内存访问）将数据从磁盘读取到内核缓冲区，然后直接转发到网络协议栈，最后通过DMA发送到网卡。
+                    </p>
+
+                    <p class="text-gray-700 mb-2"><span
+                            class="font-medium">优势：</span>减少CPU占用、减少内存带宽消耗、降低缓存污染，特别适合大文件传输场景。</p>
+
+                    <p class="text-gray-700"><span
+                            class="font-medium">注意事项：</span>无法在传输过程中修改数据、需要文件描述符和套接字支持、小数据传输可能因系统调用开销抵消收益、不是所有文件系统和设备都支持。
+                    </p>
                 </div>
-                
+
                 <div>
                     <h3 class="font-semibold text-lg mb-2">代码示例：使用sendfile传输文件</h3>
                     <div class="code-block">
@@ -337,13 +365,15 @@ public:
                 <h2 class="text-xl font-bold mb-4 text-primary">4. Linux信号(Signal)处理</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">linux中的信号（Signal）是什么？用在程序中一般处理哪些信号？如何优雅地处理SIGTERM和SIGINT信号来实现服务的平滑安全地退出？</p>
+                    <p class="text-gray-700">linux中的信号（Signal）是什么？用在程序中一般处理哪些信号？如何优雅地处理SIGTERM和SIGINT信号来实现服务的平滑安全地退出？
+                    </p>
                 </div>
-                
+
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">详细解释</h3>
-                    <p class="text-gray-700 mb-2"><span class="font-medium">信号概念：</span>信号是Linux中进程间异步通信的一种机制，用于通知进程发生了某种事件。信号可以由内核、其他进程或进程自身产生。</p>
-                    
+                    <p class="text-gray-700 mb-2"><span
+                            class="font-medium">信号概念：</span>信号是Linux中进程间异步通信的一种机制，用于通知进程发生了某种事件。信号可以由内核、其他进程或进程自身产生。</p>
+
                     <p class="text-gray-700 mb-2"><span class="font-medium">常见需要处理的信号：</span></p>
                     <ul class="list-disc ml-5 text-gray-700 mb-2">
                         <li>SIGINT (2)：终端中断信号，通常由Ctrl+C触发</li>
@@ -352,10 +382,12 @@ public:
                         <li>SIGPIPE (13)：管道断裂信号，写入无人读取的管道</li>
                         <li>SIGHUP (1)：挂起信号，终端关闭时发送</li>
                     </ul>
-                    
-                    <p class="text-gray-700"><span class="font-medium">优雅处理SIGTERM和SIGINT：</span>不应在信号处理函数中执行复杂操作，而应设置一个退出标志。主程序定期检查该标志，当检测到退出请求时，执行必要的清理工作（关闭连接、释放资源、保存状态等），然后安全退出。</p>
+
+                    <p class="text-gray-700"><span
+                            class="font-medium">优雅处理SIGTERM和SIGINT：</span>不应在信号处理函数中执行复杂操作，而应设置一个退出标志。主程序定期检查该标志，当检测到退出请求时，执行必要的清理工作（关闭连接、释放资源、保存状态等），然后安全退出。
+                    </p>
                 </div>
-                
+
                 <div>
                     <h3 class="font-semibold text-lg mb-2">代码示例：优雅退出实现</h3>
                     <div class="code-block">
@@ -433,7 +465,7 @@ int main() {
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
                     <p class="text-gray-700">请描述Linux进程的地址空间布局。另外，new char[1]可能会分配多少内存？</p>
                 </div>
-                
+
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">详细解释</h3>
                     <p class="text-gray-700 mb-2"><span class="font-medium">Linux进程地址空间布局（从低地址到高地址）：</span></p>
@@ -442,11 +474,12 @@ int main() {
                         <li><span class="font-medium">数据段（Data Segment）：</span>存放已初始化的全局变量和静态变量</li>
                         <li><span class="font-medium">BSS段：</span>存放未初始化的全局变量和静态变量，程序启动时会被清零</li>
                         <li><span class="font-medium">堆（Heap）：</span>动态内存分配区域，从低地址向高地址增长</li>
-                        <li><span class="font-medium">内存映射区（Memory Mapping Segment）：</span>包括共享库、共享内存、文件映射等，从高地址向低地址增长</li>
+                        <li><span class="font-medium">内存映射区（Memory Mapping Segment）：</span>包括共享库、共享内存、文件映射等，从高地址向低地址增长
+                        </li>
                         <li><span class="font-medium">栈（Stack）：</span>存放函数调用栈帧、局部变量等，从高地址向低地址增长</li>
                         <li><span class="font-medium">内核空间：</span>进程无法直接访问，存放内核代码和数据</li>
                     </ul>
-                    
+
                     <p class="text-gray-700 mb-2"><span class="font-medium">new char[1]的实际分配：</span></p>
                     <p class="text-gray-700">虽然逻辑上只请求1字节，但实际分配的内存会更多，原因包括：</p>
                     <ul class="list-disc ml-5 text-gray-700">
@@ -456,7 +489,7 @@ int main() {
                         <li>因此，new char[1]实际可能分配16字节（1字节用户数据 + 15字节元数据和对齐填充）</li>
                     </ul>
                 </div>
-                
+
                 <div>
                     <h3 class="font-semibold text-lg mb-2">代码示例：查看内存布局</h3>
                     <div class="code-block">
@@ -497,11 +530,13 @@ int main() {
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
                     <p class="text-gray-700">什么是守护进程？需要先后调用哪些系统调用才能让一个进程成为一个地道的守护进程？（这个当然不需要背下来，能说出其中几个即可）。</p>
                 </div>
-                
+
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">详细解释</h3>
-                    <p class="text-gray-700 mb-2"><span class="font-medium">守护进程概念：</span>守护进程是在后台运行的特殊进程，独立于控制终端，通常在系统启动时开始运行，在系统关闭时终止。它们用于执行周期性任务或提供持续服务（如web服务器、数据库服务等）。</p>
-                    
+                    <p class="text-gray-700 mb-2"><span
+                            class="font-medium">守护进程概念：</span>守护进程是在后台运行的特殊进程，独立于控制终端，通常在系统启动时开始运行，在系统关闭时终止。它们用于执行周期性任务或提供持续服务（如web服务器、数据库服务等）。
+                    </p>
+
                     <p class="text-gray-700 mb-2"><span class="font-medium">创建守护进程的关键步骤：</span></p>
                     <ol class="list-decimal ml-5 text-gray-700">
                         <li><span class="font-medium">fork()：</span>创建子进程，然后父进程退出，使子进程成为孤儿进程，由init进程（或systemd）收养</li>
@@ -514,7 +549,7 @@ int main() {
                         <li><span class="font-medium">重定向文件描述符：</span>（可选）将标准描述符重定向到/dev/null或日志文件</li>
                     </ol>
                 </div>
-                
+
                 <div>
                     <h3 class="font-semibold text-lg mb-2">代码示例：创建守护进程</h3>
                     <div class="code-block">
@@ -609,11 +644,12 @@ int main() {
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
                     <p class="text-gray-700">如何发现程序中的CPU热点（Hotspot）？你使用过哪个/些性能剖析（profiling）工具？介绍一下其使用方法。</p>
                 </div>
-                
+
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">详细解释</h3>
-                    <p class="text-gray-700 mb-2"><span class="font-medium">CPU热点概念：</span>CPU热点指程序中消耗CPU时间最多的函数或代码片段，通常是性能优化的重点目标。</p>
-                    
+                    <p class="text-gray-700 mb-2"><span
+                            class="font-medium">CPU热点概念：</span>CPU热点指程序中消耗CPU时间最多的函数或代码片段，通常是性能优化的重点目标。</p>
+
                     <p class="text-gray-700 mb-2"><span class="font-medium">常用性能剖析工具：</span></p>
                     <ul class="list-disc ml-5 text-gray-700 mb-2">
                         <li><span class="font-medium">perf：</span>Linux内核自带的性能分析工具，功能强大，支持多种事件类型</li>
@@ -621,10 +657,11 @@ int main() {
                         <li><span class="font-medium">gperftools：</span>Google性能工具集，包含CPU剖析器和堆分析器</li>
                         <li><span class="font-medium">Intel VTune：</span>Intel提供的性能分析工具，适合Intel平台深度优化</li>
                     </ul>
-                    
-                    <p class="text-gray-700"><span class="font-medium">perf工具使用方法：</span>perf是最常用的工具之一，支持采样、事件计数、调用图分析等功能，无需重新编译程序，使用灵活。</p>
+
+                    <p class="text-gray-700"><span
+                            class="font-medium">perf工具使用方法：</span>perf是最常用的工具之一，支持采样、事件计数、调用图分析等功能，无需重新编译程序，使用灵活。</p>
                 </div>
-                
+
                 <div>
                     <h3 class="font-semibold text-lg mb-2">perf使用示例</h3>
                     <div class="code-block">
@@ -645,7 +682,7 @@ perf record -g -p 12345  # 12345是进程ID
 perf record -g --call-graph dwarf ./my_program
 perf script | c++filt | gprof2dot -f perf | dot -Tpng -o callgraph.png</code></pre>
                     </div>
-                    
+
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyCode(this)">复制</button>
                         <pre><code class="bash p-4 text-sm overflow-x-auto"># gprof使用示例（需要重新编译）
@@ -662,13 +699,17 @@ gprof ./my_program gmon.out --graph  # 生成图形化报告</code></pre>
                 <h2 class="text-xl font-bold mb-4 text-primary">8. 内存错误检测</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">在Linux中如何发现程序中的内存泄漏和非法内存访问？你一般是怎么做的？请举例说明如何使用Valgrind的memcheck工具来检测C++程序中的内存错误，以及如何让Valgrind更好地理解STL和智能指针？</p>
+                    <p class="text-gray-700">
+                        在Linux中如何发现程序中的内存泄漏和非法内存访问？你一般是怎么做的？请举例说明如何使用Valgrind的memcheck工具来检测C++程序中的内存错误，以及如何让Valgrind更好地理解STL和智能指针？
+                    </p>
                 </div>
-                
+
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">详细解释</h3>
-                    <p class="text-gray-700 mb-2"><span class="font-medium">内存问题类型：</span>包括内存泄漏（未释放不再使用的内存）、越界访问（读写超出分配范围的内存）、使用已释放内存（悬空指针）、重复释放内存等。</p>
-                    
+                    <p class="text-gray-700 mb-2"><span
+                            class="font-medium">内存问题类型：</span>包括内存泄漏（未释放不再使用的内存）、越界访问（读写超出分配范围的内存）、使用已释放内存（悬空指针）、重复释放内存等。
+                    </p>
+
                     <p class="text-gray-700 mb-2"><span class="font-medium">常用检测工具：</span></p>
                     <ul class="list-disc ml-5 text-gray-700 mb-2">
                         <li><span class="font-medium">Valgrind (memcheck)：</span>最常用的内存调试工具，能检测多种内存错误</li>
@@ -676,10 +717,12 @@ gprof ./my_program gmon.out --graph  # 生成图形化报告</code></pre>
                         <li><span class="font-medium">LeakSanitizer (LSAN)：</span>专门检测内存泄漏的工具，常与ASAN一起使用</li>
                         <li><span class="font-medium">mtrace：</span>GNU C库提供的内存分配跟踪工具</li>
                     </ul>
-                    
-                    <p class="text-gray-700"><span class="font-medium">Valgrind与C++：</span>默认情况下，Valgrind可能无法完全理解C++的STL容器和智能指针，需要特殊处理才能获得准确结果。</p>
+
+                    <p class="text-gray-700"><span
+                            class="font-medium">Valgrind与C++：</span>默认情况下，Valgrind可能无法完全理解C++的STL容器和智能指针，需要特殊处理才能获得准确结果。
+                    </p>
                 </div>
-                
+
                 <div>
                     <h3 class="font-semibold text-lg mb-2">Valgrind使用示例</h3>
                     <div class="code-block">
@@ -695,7 +738,7 @@ valgrind --leak-check=full --gen-suppressions=all \
          --suppressions=/usr/lib/valgrind/default.supp \
          ./my_program</code></pre>
                     </div>
-                    
+
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyCode(this)">复制</button>
                         <pre><code class="bash p-4 text-sm overflow-x-auto"># 让Valgrind更好地支持STL和智能指针
@@ -724,19 +767,22 @@ valgrind --leak-check=full --suppressions=suppressions.txt ./my_program</code></
                 <h2 class="text-xl font-bold mb-4 text-primary">9. 文件描述符(FD)管理</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">什么是文件描述符？它的最大值由什么决定？如何修改？如果遇到"Too many open files"错误，如何排查和解决？如何利用RAII思想设计文件描述符的封装类，以避免泄漏？</p>
+                    <p class="text-gray-700">什么是文件描述符？它的最大值由什么决定？如何修改？如果遇到"Too many open
+                        files"错误，如何排查和解决？如何利用RAII思想设计文件描述符的封装类，以避免泄漏？</p>
                 </div>
-                
+
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">详细解释</h3>
-                    <p class="text-gray-700 mb-2"><span class="font-medium">文件描述符概念：</span>文件描述符是Linux系统中用于标识打开文件的非负整数，是内核维护的打开文件表的索引。它不仅用于普通文件，还用于管道、套接字、设备等I/O资源。</p>
-                    
+                    <p class="text-gray-700 mb-2"><span
+                            class="font-medium">文件描述符概念：</span>文件描述符是Linux系统中用于标识打开文件的非负整数，是内核维护的打开文件表的索引。它不仅用于普通文件，还用于管道、套接字、设备等I/O资源。
+                    </p>
+
                     <p class="text-gray-700 mb-2"><span class="font-medium">最大值限制：</span></p>
                     <ul class="list-disc ml-5 text-gray-700 mb-2">
                         <li>进程级限制：每个进程可以打开的最大文件描述符数，通过ulimit -n查看，默认通常是1024</li>
                         <li>系统级限制：整个系统可以打开的最大文件描述符总数，通过/proc/sys/fs/file-max查看</li>
                     </ul>
-                    
+
                     <p class="text-gray-700 mb-2"><span class="font-medium">"Too many open files"排查与解决：</span></p>
                     <ul class="list-disc ml-5 text-gray-700 mb-2">
                         <li>使用lsof -p <pid>查看特定进程打开的文件描述符</li>
@@ -745,10 +791,12 @@ valgrind --leak-check=full --suppressions=suppressions.txt ./my_program</code></
                         <li>修改/proc/sys/fs/file-max或/etc/sysctl.conf调整系统级限制</li>
                         <li>检查代码中是否存在文件描述符未关闭的泄漏问题</li>
                     </ul>
-                    
-                    <p class="text-gray-700"><span class="font-medium">RAII封装：</span>利用C++的RAII（资源获取即初始化）思想，将文件描述符封装在类中，构造函数打开资源，析构函数自动关闭资源，避免手动管理带来的泄漏风险。</p>
+
+                    <p class="text-gray-700"><span
+                            class="font-medium">RAII封装：</span>利用C++的RAII（资源获取即初始化）思想，将文件描述符封装在类中，构造函数打开资源，析构函数自动关闭资源，避免手动管理带来的泄漏风险。
+                    </p>
                 </div>
-                
+
                 <div>
                     <h3 class="font-semibold text-lg mb-2">代码示例：RAII文件描述符封装</h3>
                     <div class="code-block">
@@ -844,9 +892,10 @@ void use_file() {
                 <h2 class="text-xl font-bold mb-4 text-primary">10. 多线程编程与死锁检测</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">你写过多线程的程序吗？用的是linux中的pthread api还是C++中的std::thread相关的api？两者有何区别和联系？如果你写的一个程序a正在运行，你怀疑它发生了死锁，在不杀死这个进程的情况下，你如何确认它是否死锁？</p>
+                    <p class="text-gray-700">你写过多线程的程序吗？用的是linux中的pthread
+                        api还是C++中的std::thread相关的api？两者有何区别和联系？如果你写的一个程序a正在运行，你怀疑它发生了死锁，在不杀死这个进程的情况下，你如何确认它是否死锁？</p>
                 </div>
-                
+
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">详细解释</h3>
                     <p class="text-gray-700 mb-2"><span class="font-medium">pthread与std::thread对比：</span></p>
@@ -868,7 +917,7 @@ void use_file() {
                             </ul>
                         </li>
                     </ul>
-                    
+
                     <p class="text-gray-700 mb-2"><span class="font-medium">死锁检测方法：</span></p>
                     <ul class="list-disc ml-5 text-gray-700">
                         <li>使用pstack/pidof查看进程的线程调用栈，分析是否存在互相等待</li>
@@ -877,7 +926,7 @@ void use_file() {
                         <li>在程序中嵌入死锁检测机制（如定时检查线程状态）</li>
                     </ul>
                 </div>
-                
+
                 <div>
                     <h3 class="font-semibold text-lg mb-2">死锁检测示例</h3>
                     <div class="code-block">
@@ -897,7 +946,7 @@ gdb -p <pid>  # 附加到运行中的进程
 # 使用Valgrind的helgrind工具检测潜在死锁
 valgrind --tool=helgrind ./my_program</code></pre>
                     </div>
-                    
+
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyCode(this)">复制</button>
                         <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <thread>
@@ -947,9 +996,11 @@ int main() {
                 <h2 class="text-xl font-bold mb-4 text-primary">11. IO多路复用与异步API</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">select,poll,epoll，其中哪些是同步api、哪些是异步api？你在linux中使用过异步api吗？在C++中是如何封装的（使用libevent、libuv、asio还是自己封装的）？（你选择的方案）采用的是reactor还是proactor？它们有何区别？你对比过两者的性能差异吗？</p>
+                    <p class="text-gray-700">
+                        select,poll,epoll，其中哪些是同步api、哪些是异步api？你在linux中使用过异步api吗？在C++中是如何封装的（使用libevent、libuv、asio还是自己封装的）？（你选择的方案）采用的是reactor还是proactor？它们有何区别？你对比过两者的性能差异吗？
+                    </p>
                 </div>
-                
+
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">详细解释</h3>
                     <p class="text-gray-700 mb-2"><span class="font-medium">同步与异步API：</span></p>
@@ -959,14 +1010,15 @@ int main() {
                         <li>当I/O事件就绪时，仍需应用程序主动调用read/write等函数来完成实际I/O操作</li>
                         <li>Linux中没有真正意义上的异步I/O API，AIO（异步I/O）实现有限且不常用</li>
                     </ul>
-                    
+
                     <p class="text-gray-700 mb-2"><span class="font-medium">常用封装库：</span></p>
                     <ul class="list-disc ml-5 text-gray-700 mb-2">
                         <li><span class="font-medium">libevent：</span>跨平台事件通知库，支持select、poll、epoll等，采用Reactor模式</li>
                         <li><span class="font-medium">libuv：</span>跨平台异步I/O库，Node.js底层依赖，采用Reactor模式</li>
-                        <li><span class="font-medium">Boost.Asio/Asio：</span>C++网络库，支持多种I/O模型，可配置为Reactor或Proactor模式</li>
+                        <li><span class="font-medium">Boost.Asio/Asio：</span>C++网络库，支持多种I/O模型，可配置为Reactor或Proactor模式
+                        </li>
                     </ul>
-                    
+
                     <p class="text-gray-700 mb-2"><span class="font-medium">Reactor与Proactor模式区别：</span></p>
                     <ul class="list-disc ml-5 text-gray-700">
                         <li><span class="font-medium">Reactor模式：</span>
@@ -985,7 +1037,7 @@ int main() {
                         </li>
                     </ul>
                 </div>
-                
+
                 <div>
                     <h3 class="font-semibold text-lg mb-2">代码示例：基于epoll的Reactor模式</h3>
                     <div class="code-block">
@@ -1061,23 +1113,729 @@ int main() {
                     </div>
                 </div>
             </div>
+
+            <!-- 知识点卡片12 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
+                <h2 class="text-xl font-bold mb-4 text-primary">12. 二叉搜索树实现</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">简单用C++实现二叉搜索树，支持插入、删除和查找操作。</p>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
+                    <p class="text-gray-700 mb-2"><span class="font-medium">二叉搜索树特点：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li>对于任意节点，左子树所有节点值小于该节点值</li>
+                        <li>右子树所有节点值大于该节点值</li>
+                        <li>左右子树也分别为二叉搜索树</li>
+                    </ul>
+
+                    <p class="text-gray-700 mb-2"><span class="font-medium">时间复杂度：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700">
+                        <li>平均情况：查找、插入、删除均为O(log n)</li>
+                        <li>最坏情况（退化为链表）：O(n)</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">完整实现代码</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <iostream>
+#include <memory>
+
+template<typename T>
+class BST {
+private:
+    struct Node {
+        T data;
+        std::unique_ptr<Node> left;
+        std::unique_ptr<Node> right;
+        
+        Node(const T& value) : data(value), left(nullptr), right(nullptr) {}
+    };
+    
+    std::unique_ptr<Node> root;
+    
+    // 递归插入
+    std::unique_ptr<Node> insert(std::unique_ptr<Node> node, const T& value) {
+        if (!node) {
+            return std::make_unique<Node>(value);
+        }
+        
+        if (value < node->data) {
+            node->left = insert(std::move(node->left), value);
+        } else if (value > node->data) {
+            node->right = insert(std::move(node->right), value);
+        }
+        // 相等时不插入重复值
+        
+        return node;
+    }
+    
+    // 递归查找
+    Node* search(Node* node, const T& value) const {
+        if (!node || node->data == value) {
+            return node;
+        }
+        
+        if (value < node->data) {
+            return search(node->left.get(), value);
+        } else {
+            return search(node->right.get(), value);
+        }
+    }
+    
+    // 找到最小值节点
+    Node* findMin(Node* node) const {
+        while (node && node->left) {
+            node = node->left.get();
+        }
+        return node;
+    }
+    
+    // 递归删除
+    std::unique_ptr<Node> remove(std::unique_ptr<Node> node, const T& value) {
+        if (!node) {
+            return nullptr;
+        }
+        
+        if (value < node->data) {
+            node->left = remove(std::move(node->left), value);
+        } else if (value > node->data) {
+            node->right = remove(std::move(node->right), value);
+        } else {
+            // 找到要删除的节点
+            if (!node->left) {
+                return std::move(node->right);
+            } else if (!node->right) {
+                return std::move(node->left);
+            } else {
+                // 节点有两个子节点
+                Node* successor = findMin(node->right.get());
+                node->data = successor->data;
+                node->right = remove(std::move(node->right), successor->data);
+            }
+        }
+        
+        return node;
+    }
+    
+    // 中序遍历
+    void inorderTraversal(Node* node) const {
+        if (node) {
+            inorderTraversal(node->left.get());
+            std::cout << node->data << " ";
+            inorderTraversal(node->right.get());
+        }
+    }
+    
+public:
+    BST() : root(nullptr) {}
+    
+    void insert(const T& value) {
+        root = insert(std::move(root), value);
+    }
+    
+    bool search(const T& value) const {
+        return search(root.get(), value) != nullptr;
+    }
+    
+    void remove(const T& value) {
+        root = remove(std::move(root), value);
+    }
+    
+    void printInOrder() const {
+        inorderTraversal(root.get());
+        std::cout << std::endl;
+    }
+    
+    bool empty() const {
+        return root == nullptr;
+    }
+};
+
+// 使用示例
+int main() {
+    BST<int> bst;
+    
+    // 插入操作
+    bst.insert(50);
+    bst.insert(30);
+    bst.insert(70);
+    bst.insert(20);
+    bst.insert(40);
+    bst.insert(60);
+    bst.insert(80);
+    
+    // 中序遍历（应该输出有序序列）
+    std::cout << "中序遍历: ";
+    bst.printInOrder();  // 输出：20 30 40 50 60 70 80
+    
+    // 查找操作
+    std::cout << "查找40: " << (bst.search(40) ? "找到" : "未找到") << std::endl;
+    std::cout << "查找25: " << (bst.search(25) ? "找到" : "未找到") << std::endl;
+    
+    // 删除操作
+    bst.remove(30);
+    std::cout << "删除30后: ";
+    bst.printInOrder();  // 输出：20 40 50 60 70 80
+    
+    return 0;
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识点卡片13 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
+                <h2 class="text-xl font-bold mb-4 text-primary">13. 无锁环形缓冲区（单生产者多消费者）</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">基于共享内存的环形缓冲区用C++实现单生产者多消费者，要求无锁。</p>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
+                    <p class="text-gray-700 mb-2"><span class="font-medium">设计要点：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li>使用原子操作保证线程安全</li>
+                        <li>采用内存屏障确保正确的内存序</li>
+                        <li>通过序列号机制避免ABA问题</li>
+                        <li>使用缓存行对齐避免伪共享</li>
+                    </ul>
+
+                    <p class="text-gray-700 mb-2"><span class="font-medium">关键技术：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700">
+                        <li>std::atomic用于原子操作</li>
+                        <li>memory_order控制内存序</li>
+                        <li>alignas确保缓存行对齐</li>
+                        <li>共享内存映射</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">完整实现代码</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <atomic>
+#include <memory>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <cstring>
+
+template<typename T, size_t Size>
+class LockFreeRingBuffer {
+private:
+    static constexpr size_t CACHE_LINE_SIZE = 64;
+    
+    struct alignas(CACHE_LINE_SIZE) Element {
+        std::atomic<uint64_t> sequence{0};
+        T data;
+    };
+    
+    // 确保生产者和消费者计数器在不同缓存行
+    alignas(CACHE_LINE_SIZE) std::atomic<uint64_t> write_sequence_{0};
+    alignas(CACHE_LINE_SIZE) std::atomic<uint64_t> read_sequence_{0};
+    
+    Element* buffer_;
+    size_t mask_;
+    bool is_owner_;
+    int shm_fd_;
+    
+public:
+    // 创建共享内存环形缓冲区
+    static std::unique_ptr<LockFreeRingBuffer> create(const char* name) {
+        auto rb = std::unique_ptr<LockFreeRingBuffer>(new LockFreeRingBuffer());
+        
+        // 创建共享内存
+        rb->shm_fd_ = shm_open(name, O_CREAT | O_RDWR, 0666);
+        if (rb->shm_fd_ == -1) {
+            return nullptr;
+        }
+        
+        size_t total_size = sizeof(Element) * Size;
+        if (ftruncate(rb->shm_fd_, total_size) == -1) {
+            close(rb->shm_fd_);
+            return nullptr;
+        }
+        
+        // 映射共享内存
+        void* addr = mmap(nullptr, total_size, PROT_READ | PROT_WRITE, 
+                         MAP_SHARED, rb->shm_fd_, 0);
+        if (addr == MAP_FAILED) {
+            close(rb->shm_fd_);
+            return nullptr;
+        }
+        
+        rb->buffer_ = static_cast<Element*>(addr);
+        rb->mask_ = Size - 1;
+        rb->is_owner_ = true;
+        
+        // 初始化所有元素的序列号
+        for (size_t i = 0; i < Size; ++i) {
+            rb->buffer_[i].sequence.store(i, std::memory_order_relaxed);
+        }
+        
+        return rb;
+    }
+    
+    // 连接到现有共享内存
+    static std::unique_ptr<LockFreeRingBuffer> attach(const char* name) {
+        auto rb = std::unique_ptr<LockFreeRingBuffer>(new LockFreeRingBuffer());
+        
+        rb->shm_fd_ = shm_open(name, O_RDWR, 0666);
+        if (rb->shm_fd_ == -1) {
+            return nullptr;
+        }
+        
+        size_t total_size = sizeof(Element) * Size;
+        void* addr = mmap(nullptr, total_size, PROT_READ | PROT_WRITE, 
+                         MAP_SHARED, rb->shm_fd_, 0);
+        if (addr == MAP_FAILED) {
+            close(rb->shm_fd_);
+            return nullptr;
+        }
+        
+        rb->buffer_ = static_cast<Element*>(addr);
+        rb->mask_ = Size - 1;
+        rb->is_owner_ = false;
+        
+        return rb;
+    }
+    
+    ~LockFreeRingBuffer() {
+        if (buffer_) {
+            munmap(buffer_, sizeof(Element) * Size);
+        }
+        if (shm_fd_ != -1) {
+            close(shm_fd_);
+        }
+    }
+    
+    // 生产者写入数据
+    bool write(const T& item) {
+        uint64_t write_seq = write_sequence_.load(std::memory_order_relaxed);
+        Element* element = &buffer_[write_seq & mask_];
+        
+        uint64_t sequence = element->sequence.load(std::memory_order_acquire);
+        
+        // 检查位置是否可写
+        if (sequence != write_seq) {
+            return false;  // 缓冲区满
+        }
+        
+        // 写入数据
+        element->data = item;
+        
+        // 更新序列号，允许消费者读取
+        element->sequence.store(write_seq + 1, std::memory_order_release);
+        
+        // 更新写指针
+        write_sequence_.store(write_seq + 1, std::memory_order_relaxed);
+        
+        return true;
+    }
+    
+    // 消费者读取数据
+    bool read(T& item) {
+        uint64_t read_seq = read_sequence_.load(std::memory_order_relaxed);
+        
+        // 尝试获取下一个读取位置
+        while (true) {
+            Element* element = &buffer_[read_seq & mask_];
+            uint64_t sequence = element->sequence.load(std::memory_order_acquire);
+            
+            // 检查是否有数据可读
+            if (sequence != read_seq + 1) {
+                return false;  // 没有数据或已被其他消费者读取
+            }
+            
+            // 尝试原子性地更新读指针
+            if (read_sequence_.compare_exchange_weak(read_seq, read_seq + 1, 
+                                                   std::memory_order_relaxed)) {
+                // 成功获得读取权限
+                item = element->data;
+                
+                // 标记位置为可写
+                element->sequence.store(read_seq + Size, std::memory_order_release);
+                
+                return true;
+            }
+            // CAS失败，重新获取读序列号
+            read_seq = read_sequence_.load(std::memory_order_relaxed);
+        }
+    }
+    
+    // 获取当前可读元素数量（近似值）
+    size_t size() const {
+        uint64_t write_seq = write_sequence_.load(std::memory_order_acquire);
+        uint64_t read_seq = read_sequence_.load(std::memory_order_acquire);
+        return write_seq - read_seq;
+    }
+    
+    bool empty() const {
+        return size() == 0;
+    }
+    
+    bool full() const {
+        return size() >= Size;
+    }
+    
+private:
+    LockFreeRingBuffer() : buffer_(nullptr), mask_(0), is_owner_(false), shm_fd_(-1) {}
+};
+
+// 使用示例
+#include <thread>
+#include <vector>
+#include <iostream>
+#include <chrono>
+
+void producer_example() {
+    auto buffer = LockFreeRingBuffer<int, 1024>::create("/test_ring_buffer");
+    if (!buffer) {
+        std::cerr << "Failed to create ring buffer" << std::endl;
+        return;
+    }
+    
+    // 生产者线程
+    std::thread producer([&buffer]() {
+        for (int i = 0; i < 10000; ++i) {
+            while (!buffer->write(i)) {
+                std::this_thread::yield();  // 缓冲区满时让出CPU
+            }
+            
+            if (i % 1000 == 0) {
+                std::cout << "Produced: " << i << std::endl;
+            }
+        }
+        std::cout << "Producer finished" << std::endl;
+    });
+    
+    // 多个消费者线程
+    std::vector<std::thread> consumers;
+    std::atomic<int> total_consumed{0};
+    
+    for (int i = 0; i < 3; ++i) {
+        consumers.emplace_back([&buffer, &total_consumed, i]() {
+            int local_count = 0;
+            int data;
+            
+            while (total_consumed.load() < 10000) {
+                if (buffer->read(data)) {
+                    local_count++;
+                    total_consumed.fetch_add(1);
+                } else {
+                    std::this_thread::yield();
+                }
+            }
+            
+            std::cout << "Consumer " << i << " consumed: " << local_count << std::endl;
+        });
+    }
+    
+    producer.join();
+    for (auto& consumer : consumers) {
+        consumer.join();
+    }
+    
+    std::cout << "Total consumed: " << total_consumed.load() << std::endl;
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识点卡片14 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
+                <h2 class="text-xl font-bold mb-4 text-primary">14. 高效矩阵乘法实现</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">用C++高效实现矩阵乘法，可以从算法、指令集、并行角度优化性能。</p>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">详细解释</h3>
+                    <p class="text-gray-700 mb-2"><span class="font-medium">优化策略：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li><span class="font-medium">算法优化：</span>分块矩阵乘法、Strassen算法</li>
+                        <li><span class="font-medium">缓存优化：</span>循环重排序、数据预取、内存局部性</li>
+                        <li><span class="font-medium">指令集优化：</span>SIMD指令（AVX、SSE）</li>
+                        <li><span class="font-medium">并行优化：</span>OpenMP、多线程、GPU计算</li>
+                    </ul>
+
+                    <p class="text-gray-700 mb-2"><span class="font-medium">性能提升点：</span></p>
+                    <ul class="list-disc ml-5 text-gray-700">
+                        <li>减少缓存缺失（分块计算）</li>
+                        <li>提高指令吞吐量（向量化）</li>
+                        <li>利用多核并行（线程池）</li>
+                        <li>减少内存访问开销</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">多种优化实现</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <vector>
+#include <immintrin.h>  // AVX指令集
+#include <omp.h>        // OpenMP
+#include <algorithm>
+#include <chrono>
+#include <iostream>
+
+class MatrixMultiplier {
+public:
+    using Matrix = std::vector<std::vector<float>>;
+    
+    // 1. 基础版本
+    static Matrix multiply_basic(const Matrix& A, const Matrix& B) {
+        size_t n = A.size();
+        size_t m = A[0].size();
+        size_t p = B[0].size();
+        
+        Matrix C(n, std::vector<float>(p, 0.0f));
+        
+        for (size_t i = 0; i < n; ++i) {
+            for (size_t j = 0; j < p; ++j) {
+                for (size_t k = 0; k < m; ++k) {
+                    C[i][j] += A[i][k] * B[k][j];
+                }
+            }
+        }
+        
+        return C;
+    }
+    
+    // 2. 缓存优化版本（分块矩阵乘法）
+    static Matrix multiply_blocked(const Matrix& A, const Matrix& B, size_t block_size = 64) {
+        size_t n = A.size();
+        size_t m = A[0].size();
+        size_t p = B[0].size();
+        
+        Matrix C(n, std::vector<float>(p, 0.0f));
+        
+        for (size_t ii = 0; ii < n; ii += block_size) {
+            for (size_t jj = 0; jj < p; jj += block_size) {
+                for (size_t kk = 0; kk < m; kk += block_size) {
+                    
+                    size_t i_end = std::min(ii + block_size, n);
+                    size_t j_end = std::min(jj + block_size, p);
+                    size_t k_end = std::min(kk + block_size, m);
+                    
+                    // 计算当前块
+                    for (size_t i = ii; i < i_end; ++i) {
+                        for (size_t j = jj; j < j_end; ++j) {
+                            float sum = C[i][j];
+                            for (size_t k = kk; k < k_end; ++k) {
+                                sum += A[i][k] * B[k][j];
+                            }
+                            C[i][j] = sum;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return C;
+    }
+    
+    // 3. SIMD优化版本（AVX）
+    static Matrix multiply_avx(const Matrix& A, const Matrix& B) {
+        size_t n = A.size();
+        size_t m = A[0].size();
+        size_t p = B[0].size();
+        
+        Matrix C(n, std::vector<float>(p, 0.0f));
+        
+        // 确保p是8的倍数（AVX一次处理8个float）
+        size_t p_aligned = (p / 8) * 8;
+        
+        for (size_t i = 0; i < n; ++i) {
+            for (size_t k = 0; k < m; ++k) {
+                __m256 a_ik = _mm256_broadcast_ss(&A[i][k]);
+                
+                // 处理对齐的部分
+                for (size_t j = 0; j < p_aligned; j += 8) {
+                    __m256 b_kj = _mm256_loadu_ps(&B[k][j]);
+                    __m256 c_ij = _mm256_loadu_ps(&C[i][j]);
+                    
+                    __m256 result = _mm256_fmadd_ps(a_ik, b_kj, c_ij);
+                    _mm256_storeu_ps(&C[i][j], result);
+                }
+                
+                // 处理剩余部分
+                for (size_t j = p_aligned; j < p; ++j) {
+                    C[i][j] += A[i][k] * B[k][j];
+                }
+            }
+        }
+        
+        return C;
+    }
+    
+    // 4. OpenMP并行版本
+    static Matrix multiply_parallel(const Matrix& A, const Matrix& B) {
+        size_t n = A.size();
+        size_t m = A[0].size();
+        size_t p = B[0].size();
+        
+        Matrix C(n, std::vector<float>(p, 0.0f));
+        
+        #pragma omp parallel for
+        for (size_t i = 0; i < n; ++i) {
+            for (size_t j = 0; j < p; ++j) {
+                float sum = 0.0f;
+                for (size_t k = 0; k < m; ++k) {
+                    sum += A[i][k] * B[k][j];
+                }
+                C[i][j] = sum;
+            }
+        }
+        
+        return C;
+    }
+    
+    // 5. 终极优化版本（分块+SIMD+并行）
+    static Matrix multiply_optimized(const Matrix& A, const Matrix& B, size_t block_size = 64) {
+        size_t n = A.size();
+        size_t m = A[0].size();
+        size_t p = B[0].size();
+        
+        Matrix C(n, std::vector<float>(p, 0.0f));
+        
+        #pragma omp parallel for
+        for (size_t ii = 0; ii < n; ii += block_size) {
+            for (size_t jj = 0; jj < p; jj += block_size) {
+                for (size_t kk = 0; kk < m; kk += block_size) {
+                    
+                    size_t i_end = std::min(ii + block_size, n);
+                    size_t j_end = std::min(jj + block_size, p);
+                    size_t k_end = std::min(kk + block_size, m);
+                    
+                    // 每个块内使用SIMD优化
+                    for (size_t i = ii; i < i_end; ++i) {
+                        for (size_t k = kk; k < k_end; ++k) {
+                            __m256 a_ik = _mm256_broadcast_ss(&A[i][k]);
+                            
+                            size_t j_aligned = jj + ((j_end - jj) / 8) * 8;
+                            
+                            // SIMD处理
+                            for (size_t j = jj; j < j_aligned; j += 8) {
+                                __m256 b_kj = _mm256_loadu_ps(&B[k][j]);
+                                __m256 c_ij = _mm256_loadu_ps(&C[i][j]);
+                                
+                                __m256 result = _mm256_fmadd_ps(a_ik, b_kj, c_ij);
+                                _mm256_storeu_ps(&C[i][j], result);
+                            }
+                            
+                            // 处理剩余元素
+                            for (size_t j = j_aligned; j < j_end; ++j) {
+                                C[i][j] += A[i][k] * B[k][j];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return C;
+    }
+};
+
+// 性能测试
+class MatrixBenchmark {
+public:
+    static void benchmark_all(size_t size) {
+        // 生成测试矩阵
+        auto A = generate_matrix(size, size);
+        auto B = generate_matrix(size, size);
+        
+        std::cout << "Matrix size: " << size << "x" << size << std::endl;
+        
+        // 测试不同版本
+        benchmark_method("Basic", [&]() { 
+            return MatrixMultiplier::multiply_basic(A, B); 
+        });
+        
+        benchmark_method("Blocked", [&]() { 
+            return MatrixMultiplier::multiply_blocked(A, B, 64); 
+        });
+        
+        benchmark_method("AVX", [&]() { 
+            return MatrixMultiplier::multiply_avx(A, B); 
+        });
+        
+        benchmark_method("Parallel", [&]() { 
+            return MatrixMultiplier::multiply_parallel(A, B); 
+        });
+        
+        benchmark_method("Optimized", [&]() { 
+            return MatrixMultiplier::multiply_optimized(A, B, 64); 
+        });
+    }
+    
+private:
+    static MatrixMultiplier::Matrix generate_matrix(size_t rows, size_t cols) {
+        MatrixMultiplier::Matrix matrix(rows, std::vector<float>(cols));
+        for (size_t i = 0; i < rows; ++i) {
+            for (size_t j = 0; j < cols; ++j) {
+                matrix[i][j] = static_cast<float>(rand()) / RAND_MAX;
+            }
+        }
+        return matrix;
+    }
+    
+    template<typename Func>
+    static void benchmark_method(const std::string& name, Func func) {
+        auto start = std::chrono::high_resolution_clock::now();
+        auto result = func();
+        auto end = std::chrono::high_resolution_clock::now();
+        
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        std::cout << name << ": " << duration.count() << " ms" << std::endl;
+    }
+};
+
+// 使用示例
+int main() {
+    // 设置OpenMP线程数
+    omp_set_num_threads(std::thread::hardware_concurrency());
+    
+    std::cout << "Matrix Multiplication Benchmark" << std::endl;
+    std::cout << "Using " << omp_get_max_threads() << " threads" << std::endl;
+    
+    // 测试不同大小的矩阵
+    for (size_t size : {128, 256, 512}) {
+        std::cout << "\n";
+        MatrixBenchmark::benchmark_all(size);
+    }
+    
+    return 0;
+}</code></pre>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
     <script>
         // 过滤功能
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const filterButtons = document.querySelectorAll('.filter-btn');
             const cards = document.querySelectorAll('.card');
-            
+
             filterButtons.forEach(button => {
-                button.addEventListener('click', function() {
+                button.addEventListener('click', function () {
                     const filter = this.getAttribute('data-filter');
-                    
+
                     // 更新按钮状态
                     filterButtons.forEach(btn => btn.classList.remove('active'));
                     this.classList.add('active');
-                    
+
                     // 过滤卡片
                     cards.forEach(card => {
                         if (filter === 'all' || card.getAttribute('data-category') === filter) {
@@ -1089,24 +1847,25 @@ int main() {
                 });
             });
         });
-        
+
         // 复制代码功能
         function copyCode(button) {
             const codeBlock = button.parentElement;
             const code = codeBlock.querySelector('code');
             const text = code.textContent || code.innerText;
-            
-            navigator.clipboard.writeText(text).then(function() {
+
+            navigator.clipboard.writeText(text).then(function () {
                 button.textContent = '已复制';
                 button.classList.add('copied');
                 setTimeout(() => {
                     button.textContent = '复制';
                     button.classList.remove('copied');
                 }, 2000);
-            }).catch(function(err) {
+            }).catch(function (err) {
                 console.error('复制失败:', err);
             });
         }
     </script>
 </body>
+
 </html>

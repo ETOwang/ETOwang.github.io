@@ -509,11 +509,11 @@ int main() {
     char* heap_var = new char[1];
     
     // 打印各区域地址
-    std::cout << "代码段（main函数）: " << reinterpret_cast<void*>(&main) << std::endl;
-    std::cout << "数据段（已初始化全局变量）: " << reinterpret_cast<void*>(&global_init) << std::endl;
-    std::cout << "BSS段（未初始化全局变量）: " << reinterpret_cast<void*>(&global_uninit) << std::endl;
-    std::cout << "堆（new char[1]）: " << reinterpret_cast<void*>(heap_var) << std::endl;
-    std::cout << "栈（局部变量）: " << reinterpret_cast<void*>(&stack_var) << std::endl;
+    std::cout &lt;&lt; "代码段（main函数）: " &lt;&lt; reinterpret_cast&lt;void*&gt;(&amp;main) &lt;&lt; std::endl;
+    std::cout &lt;&lt; "数据段（已初始化全局变量）: " &lt;&lt; reinterpret_cast&lt;void*&gt;(&amp;global_init) &lt;&lt; std::endl;
+    std::cout &lt;&lt; "BSS段（未初始化全局变量）: " &lt;&lt; reinterpret_cast&lt;void*&gt;(&amp;global_uninit) &lt;&lt; std::endl;
+    std::cout &lt;&lt; "堆（new char[1]）: " &lt;&lt; reinterpret_cast&lt;void*&gt;(heap_var) &lt;&lt; std::endl;
+    std::cout &lt;&lt; "栈（局部变量）: " &lt;&lt; reinterpret_cast&lt;void*&gt;(&amp;stack_var) &lt;&lt; std::endl;
     
     delete[] heap_var;
     return 0;
@@ -1371,9 +1371,9 @@ public:
             return nullptr;
         }
         
-        rb->buffer_ = static_cast<Element*>(addr);
-        rb->mask_ = Size - 1;
-        rb->is_owner_ = true;
+        rb-&gt;buffer_ = static_cast&lt;Element*&gt;(addr);
+        rb-&gt;mask_ = Size - 1;
+        rb-&gt;is_owner_ = true;
         
         // 初始化所有元素的序列号
         for (size_t i = 0; i &lt; Size; ++i) {
@@ -1400,9 +1400,9 @@ public:
             return nullptr;
         }
         
-        rb->buffer_ = static_cast<Element*>(addr);
-        rb->mask_ = Size - 1;
-        rb->is_owner_ = false;
+        rb-&gt;buffer_ = static_cast&lt;Element*&gt;(addr);
+        rb-&gt;mask_ = Size - 1;
+        rb-&gt;is_owner_ = false;
         
         return rb;
     }
@@ -1783,14 +1783,14 @@ private:
         MatrixMultiplier::Matrix matrix(rows, std::vector&lt;float&gt;(cols));
         for (size_t i = 0; i &lt; rows; ++i) {
             for (size_t j = 0; j &lt; cols; ++j) {
-                matrix[i][j] = static_cast<float>(rand()) / RAND_MAX;
+                matrix[i][j] = static_cast&lt;float&gt;(rand()) / RAND_MAX;
             }
         }
         return matrix;
     }
     
-    template<typename Func>
-    static void benchmark_method(const std::string& name, Func func) {
+    template&lt;typename Func&gt;
+    static void benchmark_method(const std::string&amp; name, Func func) {
         auto start = std::chrono::high_resolution_clock::now();
         auto result = func();
         auto end = std::chrono::high_resolution_clock::now();

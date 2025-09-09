@@ -144,22 +144,22 @@
 private:
     // 共享数据结构
     struct Data {
-        std::shared_ptr<char[]> buffer;
+        std::shared_ptr&lt;char[]&gt; buffer;
         size_t size;
         size_t capacity;
         
         Data(size_t cap) : capacity(cap), size(0) {
-            buffer = std::make_shared<char[]>(cap + 1); // +1 for null terminator
+            buffer = std::make_shared&lt;char[]&gt;(cap + 1); // +1 for null terminator
             buffer[0] = '\0';
         }
     };
     
-    std::shared_ptr<Data> data_;
+    std::shared_ptr&lt;Data&gt; data_;
     
     // 确保拥有独立副本（写时复制）
     void ensure_unique() {
-        if (data_.use_count() > 1) {
-            auto new_data = std::make_shared<Data>(data_->capacity);
+        if (data_.use_count() &gt; 1) {
+            auto new_data = std::make_shared&lt;Data&gt;(data_-&gt;capacity);
             std::strcpy(new_data->buffer.get(), data_->buffer.get());
             new_data->size = data_->size;
             data_ = new_data;
@@ -167,7 +167,7 @@ private:
     }
     
 public:
-    CowString() : data_(std::make_shared<Data>(15)) {} // 初始容量15
+    CowString() : data_(std::make_shared&lt;Data&gt;(15)) {} // 初始容量15
     
     // 拷贝构造 - 共享数据
     CowString(const CowString& other) : data_(other.data_) {}
@@ -176,8 +176,8 @@ public:
     CowString& operator=(const char* str) {
         ensure_unique(); // 确保修改不会影响其他共享者
         size_t len = std::strlen(str);
-        if (len > data_->capacity) {
-            data_ = std::make_shared<Data>(len);
+        if (len &gt; data_-&gt;capacity) {
+            data_ = std::make_shared&lt;Data&gt;(len);
         }
         std::strcpy(data_->buffer.get(), str);
         data_->size = len;
@@ -295,11 +295,11 @@ public:
                     <h3 class="font-semibold text-lg mb-2">代码示例：使用sendfile传输文件</h3>
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyCode(this)">复制</button>
-                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <sys/sendfile.h>
-#include <fcntl.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/stat.h>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include &lt;sys/sendfile.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;netinet/in.h&gt;
+#include &lt;sys/socket.h&gt;
+#include &lt;sys/stat.h&gt;
 
 class FileSender {
 private:
@@ -392,19 +392,19 @@ public:
                     <h3 class="font-semibold text-lg mb-2">代码示例：优雅退出实现</h3>
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyCode(this)">复制</button>
-                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <signal.h>
-#include <atomic>
-#include <iostream>
-#include <thread>
-#include <chrono>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include &lt;signal.h&gt;
+#include &lt;atomic&gt;
+#include &lt;iostream&gt;
+#include &lt;thread&gt;
+#include &lt;chrono&gt;
 
 class SignalHandler {
 private:
-    static std::atomic<bool> g_should_exit;
+    static std::atomic&lt;bool&gt; g_should_exit;
     
     static void signal_handler(int signum) {
         if (signum == SIGINT || signum == SIGTERM) {
-            std::cout << "\n收到退出信号，准备优雅退出..." << std::endl;
+            std::cout &lt;&lt; "\n收到退出信号，准备优雅退出..." &lt;&lt; std::endl;
             g_should_exit = true;
         }
     }
@@ -426,7 +426,7 @@ public:
     }
 };
 
-std::atomic<bool> SignalHandler::g_should_exit(false);
+std::atomic&lt;bool&gt; SignalHandler::g_should_exit(false);
 
 // 模拟服务清理工作
 void cleanup() {
@@ -494,8 +494,8 @@ int main() {
                     <h3 class="font-semibold text-lg mb-2">代码示例：查看内存布局</h3>
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyCode(this)">复制</button>
-                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <iostream>
-#include <cstdlib>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include &lt;iostream&gt;
+#include &lt;cstdlib&gt;
 
 // 全局变量，位于数据段或BSS段
 int global_init = 42;        // 数据段
@@ -554,28 +554,28 @@ int main() {
                     <h3 class="font-semibold text-lg mb-2">代码示例：创建守护进程</h3>
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyCode(this)">复制</button>
-                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <unistd.h>
-#include <signal.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <stdio.h>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include &lt;unistd.h&gt;
+#include &lt;signal.h&gt;
+#include &lt;sys/stat.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;stdio.h&gt;
 
 class DaemonProcess {
 public:
     static void daemonize() {
         // 第一步：fork并让父进程退出
         pid_t pid = fork();
-        if (pid < 0) {
+        if (pid &lt; 0) {
             perror("fork failed");
             exit(EXIT_FAILURE);
         }
-        if (pid > 0) {
+        if (pid &gt; 0) {
             exit(EXIT_SUCCESS); // 父进程退出
         }
         
         // 第二步：创建新会话
-        if (setsid() < 0) {
+        if (setsid() &lt; 0) {
             perror("setsid failed");
             exit(EXIT_FAILURE);
         }
@@ -585,16 +585,16 @@ public:
         
         // 第三步：再次fork，确保不是会话领头进程
         pid = fork();
-        if (pid < 0) {
+        if (pid &lt; 0) {
             perror("fork failed");
             exit(EXIT_FAILURE);
         }
-        if (pid > 0) {
+        if (pid &gt; 0) {
             exit(EXIT_SUCCESS);
         }
         
         // 第四步：改变工作目录
-        if (chdir("/") < 0) {
+        if (chdir("/") &lt; 0) {
             perror("chdir failed");
             exit(EXIT_FAILURE);
         }
@@ -603,13 +603,13 @@ public:
         umask(0);
         
         // 第六步：关闭所有文件描述符
-        for (int fd = sysconf(_SC_OPEN_MAX); fd >= 0; fd--) {
+        for (int fd = sysconf(_SC_OPEN_MAX); fd &gt;= 0; fd--) {
             close(fd);
         }
         
         // 第七步：重定向标准IO到/dev/null
         int devnull = open("/dev/null", O_RDWR);
-        if (devnull < 0) {
+        if (devnull &lt; 0) {
             exit(EXIT_FAILURE);
         }
         dup2(devnull, STDIN_FILENO);
@@ -801,10 +801,10 @@ valgrind --leak-check=full --suppressions=suppressions.txt ./my_program</code></
                     <h3 class="font-semibold text-lg mb-2">代码示例：RAII文件描述符封装</h3>
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyCode(this)">复制</button>
-                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <unistd.h>
-#include <fcntl.h>
-#include <stdexcept>
-#include <utility>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include &lt;unistd.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;stdexcept&gt;
+#include &lt;utility&gt;
 
 class FileDescriptor {
 private:
@@ -949,33 +949,33 @@ valgrind --tool=helgrind ./my_program</code></pre>
 
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyCode(this)">复制</button>
-                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <thread>
-#include <mutex>
-#include <iostream>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include &lt;thread&gt;
+#include &lt;mutex&gt;
+#include &lt;iostream&gt;
 
 std::mutex mtx1, mtx2;
 
 // 可能导致死锁的函数
 void thread_func1() {
-    std::lock_guard<std::mutex> lock1(mtx1);
-    std::cout << "Thread 1 locked mtx1" << std::endl;
+    std::lock_guard&lt;std::mutex&gt; lock1(mtx1);
+    std::cout &lt;&lt; "Thread 1 locked mtx1" &lt;&lt; std::endl;
     
     // 模拟一些工作
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     
-    std::lock_guard<std::mutex> lock2(mtx2);
-    std::cout << "Thread 1 locked mtx2" << std::endl;
+    std::lock_guard&lt;std::mutex&gt; lock2(mtx2);
+    std::cout &lt;&lt; "Thread 1 locked mtx2" &lt;&lt; std::endl;
 }
 
 void thread_func2() {
-    std::lock_guard<std::mutex> lock2(mtx2);
-    std::cout << "Thread 2 locked mtx2" << std::endl;
+    std::lock_guard&lt;std::mutex&gt; lock2(mtx2);
+    std::cout &lt;&lt; "Thread 2 locked mtx2" &lt;&lt; std::endl;
     
     // 模拟一些工作
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     
-    std::lock_guard<std::mutex> lock1(mtx1);
-    std::cout << "Thread 2 locked mtx1" << std::endl;
+    std::lock_guard&lt;std::mutex&gt; lock1(mtx1);
+    std::cout &lt;&lt; "Thread 2 locked mtx1" &lt;&lt; std::endl;
 }
 
 int main() {
@@ -1042,11 +1042,11 @@ int main() {
                     <h3 class="font-semibold text-lg mb-2">代码示例：基于epoll的Reactor模式</h3>
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyCode(this)">复制</button>
-                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <sys/epoll.h>
-#include <unistd.h>
-#include <vector>
-#include <iostream>
-#include <cstring>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include &lt;sys/epoll.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;vector&gt;
+#include &lt;iostream&gt;
+#include &lt;cstring&gt;
 
 class Reactor {
 private:
@@ -1096,13 +1096,13 @@ int main() {
     
     while (true) {
         int num_events = reactor.wait();
-        for (int i = 0; i < num_events; ++i) {
+        for (int i = 0; i &lt; num_events; ++i) {
             struct epoll_event ev = reactor.get_event(i);
             if (ev.events & EPOLLIN) {
                 char buffer[1024];
                 ssize_t n = read(ev.data.fd, buffer, sizeof(buffer));
-                if (n > 0) {
-                    std::cout << "Read: " << std::string(buffer, n);
+                if (n &gt; 0) {
+                    std::cout &lt;&lt; "Read: " &lt;&lt; std::string(buffer, n);
                 }
             }
         }
@@ -1150,8 +1150,8 @@ class BST {
 private:
     struct Node {
         T data;
-        std::unique_ptr<Node> left;
-        std::unique_ptr<Node> right;
+        std::unique_ptr&lt;Node&gt; left;
+        std::unique_ptr&lt;Node&gt; right;
         
         Node(const T& value) : data(value), left(nullptr), right(nullptr) {}
     };
@@ -1376,7 +1376,7 @@ public:
         rb->is_owner_ = true;
         
         // 初始化所有元素的序列号
-        for (size_t i = 0; i < Size; ++i) {
+        for (size_t i = 0; i &lt; Size; ++i) {
             rb->buffer_[i].sequence.store(i, std::memory_order_relaxed);
         }
         

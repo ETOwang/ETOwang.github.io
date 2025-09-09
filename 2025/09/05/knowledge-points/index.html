@@ -1142,10 +1142,10 @@ int main() {
                     <h3 class="font-semibold text-lg mb-2">完整实现代码</h3>
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyCode(this)">复制</button>
-                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <iostream>
-#include <memory>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include &lt;iostream&gt;
+#include &lt;memory&gt;
 
-template<typename T>
+template&lt;typename T&gt;
 class BST {
 private:
     struct Node {
@@ -1156,18 +1156,18 @@ private:
         Node(const T& value) : data(value), left(nullptr), right(nullptr) {}
     };
     
-    std::unique_ptr<Node> root;
+    std::unique_ptr&lt;Node&gt; root;
     
     // 递归插入
-    std::unique_ptr<Node> insert(std::unique_ptr<Node> node, const T& value) {
+    std::unique_ptr&lt;Node&gt; insert(std::unique_ptr&lt;Node&gt; node, const T& value) {
         if (!node) {
-            return std::make_unique<Node>(value);
+            return std::make_unique&lt;Node&gt;(value);
         }
         
-        if (value < node->data) {
-            node->left = insert(std::move(node->left), value);
-        } else if (value > node->data) {
-            node->right = insert(std::move(node->right), value);
+        if (value &lt; node-&gt;data) {
+            node-&gt;left = insert(std::move(node-&gt;left), value);
+        } else if (value &gt; node-&gt;data) {
+            node-&gt;right = insert(std::move(node-&gt;right), value);
         }
         // 相等时不插入重复值
         
@@ -1180,42 +1180,42 @@ private:
             return node;
         }
         
-        if (value < node->data) {
-            return search(node->left.get(), value);
+        if (value &lt; node-&gt;data) {
+            return search(node-&gt;left.get(), value);
         } else {
-            return search(node->right.get(), value);
+            return search(node-&gt;right.get(), value);
         }
     }
     
     // 找到最小值节点
     Node* findMin(Node* node) const {
-        while (node && node->left) {
-            node = node->left.get();
+        while (node && node-&gt;left) {
+            node = node-&gt;left.get();
         }
         return node;
     }
     
     // 递归删除
-    std::unique_ptr<Node> remove(std::unique_ptr<Node> node, const T& value) {
+    std::unique_ptr&lt;Node&gt; remove(std::unique_ptr&lt;Node&gt; node, const T& value) {
         if (!node) {
             return nullptr;
         }
         
-        if (value < node->data) {
-            node->left = remove(std::move(node->left), value);
-        } else if (value > node->data) {
-            node->right = remove(std::move(node->right), value);
+        if (value &lt; node-&gt;data) {
+            node-&gt;left = remove(std::move(node-&gt;left), value);
+        } else if (value &gt; node-&gt;data) {
+            node-&gt;right = remove(std::move(node-&gt;right), value);
         } else {
             // 找到要删除的节点
-            if (!node->left) {
-                return std::move(node->right);
-            } else if (!node->right) {
-                return std::move(node->left);
+            if (!node-&gt;left) {
+                return std::move(node-&gt;right);
+            } else if (!node-&gt;right) {
+                return std::move(node-&gt;left);
             } else {
                 // 节点有两个子节点
-                Node* successor = findMin(node->right.get());
-                node->data = successor->data;
-                node->right = remove(std::move(node->right), successor->data);
+                Node* successor = findMin(node-&gt;right.get());
+                node-&gt;data = successor-&gt;data;
+                node-&gt;right = remove(std::move(node-&gt;right), successor-&gt;data);
             }
         }
         
@@ -1225,9 +1225,9 @@ private:
     // 中序遍历
     void inorderTraversal(Node* node) const {
         if (node) {
-            inorderTraversal(node->left.get());
-            std::cout << node->data << " ";
-            inorderTraversal(node->right.get());
+            inorderTraversal(node-&gt;left.get());
+            std::cout &lt;&lt; node-&gt;data &lt;&lt; " ";
+            inorderTraversal(node-&gt;right.get());
         }
     }
     
@@ -1248,7 +1248,7 @@ public:
     
     void printInOrder() const {
         inorderTraversal(root.get());
-        std::cout << std::endl;
+        std::cout &lt;&lt; std::endl;
     }
     
     bool empty() const {
@@ -1258,7 +1258,7 @@ public:
 
 // 使用示例
 int main() {
-    BST<int> bst;
+    BST&lt;int&gt; bst;
     
     // 插入操作
     bst.insert(50);
@@ -1270,16 +1270,16 @@ int main() {
     bst.insert(80);
     
     // 中序遍历（应该输出有序序列）
-    std::cout << "中序遍历: ";
+    std::cout &lt;&lt; "中序遍历: ";
     bst.printInOrder();  // 输出：20 30 40 50 60 70 80
     
     // 查找操作
-    std::cout << "查找40: " << (bst.search(40) ? "找到" : "未找到") << std::endl;
-    std::cout << "查找25: " << (bst.search(25) ? "找到" : "未找到") << std::endl;
+    std::cout &lt;&lt; "查找40: " &lt;&lt; (bst.search(40) ? "找到" : "未找到") &lt;&lt; std::endl;
+    std::cout &lt;&lt; "查找25: " &lt;&lt; (bst.search(25) ? "找到" : "未找到") &lt;&lt; std::endl;
     
     // 删除操作
     bst.remove(30);
-    std::cout << "删除30后: ";
+    std::cout &lt;&lt; "删除30后: ";
     bst.printInOrder();  // 输出：20 40 50 60 70 80
     
     return 0;
@@ -1319,27 +1319,27 @@ int main() {
                     <h3 class="font-semibold text-lg mb-2">完整实现代码</h3>
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyCode(this)">复制</button>
-                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <atomic>
-#include <memory>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <cstring>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include &lt;atomic&gt;
+#include &lt;memory&gt;
+#include &lt;sys/mman.h&gt;
+#include &lt;sys/stat.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;unistd.h&gt;
+#include &lt;cstring&gt;
 
-template<typename T, size_t Size>
+template&lt;typename T, size_t Size&gt;
 class LockFreeRingBuffer {
 private:
     static constexpr size_t CACHE_LINE_SIZE = 64;
     
     struct alignas(CACHE_LINE_SIZE) Element {
-        std::atomic<uint64_t> sequence{0};
+        std::atomic&lt;uint64_t&gt; sequence{0};
         T data;
     };
     
     // 确保生产者和消费者计数器在不同缓存行
-    alignas(CACHE_LINE_SIZE) std::atomic<uint64_t> write_sequence_{0};
-    alignas(CACHE_LINE_SIZE) std::atomic<uint64_t> read_sequence_{0};
+    alignas(CACHE_LINE_SIZE) std::atomic&lt;uint64_t&gt; write_sequence_{0};
+    alignas(CACHE_LINE_SIZE) std::atomic&lt;uint64_t&gt; read_sequence_{0};
     
     Element* buffer_;
     size_t mask_;
@@ -1348,8 +1348,8 @@ private:
     
 public:
     // 创建共享内存环形缓冲区
-    static std::unique_ptr<LockFreeRingBuffer> create(const char* name) {
-        auto rb = std::unique_ptr<LockFreeRingBuffer>(new LockFreeRingBuffer());
+    static std::unique_ptr&lt;LockFreeRingBuffer&gt; create(const char* name) {
+        auto rb = std::unique_ptr&lt;LockFreeRingBuffer&gt;(new LockFreeRingBuffer());
         
         // 创建共享内存
         rb->shm_fd_ = shm_open(name, O_CREAT | O_RDWR, 0666);
@@ -1384,8 +1384,8 @@ public:
     }
     
     // 连接到现有共享内存
-    static std::unique_ptr<LockFreeRingBuffer> attach(const char* name) {
-        auto rb = std::unique_ptr<LockFreeRingBuffer>(new LockFreeRingBuffer());
+    static std::unique_ptr&lt;LockFreeRingBuffer&gt; attach(const char* name) {
+        auto rb = std::unique_ptr&lt;LockFreeRingBuffer&gt;(new LockFreeRingBuffer());
         
         rb->shm_fd_ = shm_open(name, O_RDWR, 0666);
         if (rb->shm_fd_ == -1) {
@@ -1490,15 +1490,15 @@ private:
 };
 
 // 使用示例
-#include <thread>
-#include <vector>
-#include <iostream>
-#include <chrono>
+#include &lt;thread&gt;
+#include &lt;vector&gt;
+#include &lt;iostream&gt;
+#include &lt;chrono&gt;
 
 void producer_example() {
-    auto buffer = LockFreeRingBuffer<int, 1024>::create("/test_ring_buffer");
+    auto buffer = LockFreeRingBuffer&lt;int, 1024&gt;::create("/test_ring_buffer");
     if (!buffer) {
-        std::cerr << "Failed to create ring buffer" << std::endl;
+        std::cerr &lt;&lt; "Failed to create ring buffer" &lt;&lt; std::endl;
         return;
     }
     
@@ -1510,23 +1510,23 @@ void producer_example() {
             }
             
             if (i % 1000 == 0) {
-                std::cout << "Produced: " << i << std::endl;
+                std::cout &lt;&lt; "Produced: " &lt;&lt; i &lt;&lt; std::endl;
             }
         }
-        std::cout << "Producer finished" << std::endl;
+        std::cout &lt;&lt; "Producer finished" &lt;&lt; std::endl;
     });
     
     // 多个消费者线程
-    std::vector<std::thread> consumers;
-    std::atomic<int> total_consumed{0};
+    std::vector&lt;std::thread&gt; consumers;
+    std::atomic&lt;int&gt; total_consumed{0};
     
     for (int i = 0; i < 3; ++i) {
         consumers.emplace_back([&buffer, &total_consumed, i]() {
             int local_count = 0;
             int data;
             
-            while (total_consumed.load() < 10000) {
-                if (buffer->read(data)) {
+            while (total_consumed.load() &lt; 10000) {
+                if (buffer-&gt;read(data)) {
                     local_count++;
                     total_consumed.fetch_add(1);
                 } else {
@@ -1534,7 +1534,7 @@ void producer_example() {
                 }
             }
             
-            std::cout << "Consumer " << i << " consumed: " << local_count << std::endl;
+            std::cout &lt;&lt; "Consumer " &lt;&lt; i &lt;&lt; " consumed: " &lt;&lt; local_count &lt;&lt; std::endl;
         });
     }
     
@@ -1543,7 +1543,7 @@ void producer_example() {
         consumer.join();
     }
     
-    std::cout << "Total consumed: " << total_consumed.load() << std::endl;
+    std::cout &lt;&lt; "Total consumed: " &lt;&lt; total_consumed.load() &lt;&lt; std::endl;
 }</code></pre>
                     </div>
                 </div>
@@ -1580,16 +1580,16 @@ void producer_example() {
                     <h3 class="font-semibold text-lg mb-2">多种优化实现</h3>
                     <div class="code-block">
                         <button class="copy-btn" onclick="copyCode(this)">复制</button>
-                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include <vector>
-#include <immintrin.h>  // AVX指令集
-#include <omp.h>        // OpenMP
-#include <algorithm>
-#include <chrono>
-#include <iostream>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include &lt;vector&gt;
+#include &lt;immintrin.h&gt;  // AVX指令集
+#include &lt;omp.h&gt;        // OpenMP
+#include &lt;algorithm&gt;
+#include &lt;chrono&gt;
+#include &lt;iostream&gt;
 
 class MatrixMultiplier {
 public:
-    using Matrix = std::vector<std::vector<float>>;
+    using Matrix = std::vector&lt;std::vector&lt;float&gt;&gt;;
     
     // 1. 基础版本
     static Matrix multiply_basic(const Matrix& A, const Matrix& B) {
@@ -1597,11 +1597,11 @@ public:
         size_t m = A[0].size();
         size_t p = B[0].size();
         
-        Matrix C(n, std::vector<float>(p, 0.0f));
+        Matrix C(n, std::vector&lt;float&gt;(p, 0.0f));
         
-        for (size_t i = 0; i < n; ++i) {
-            for (size_t j = 0; j < p; ++j) {
-                for (size_t k = 0; k < m; ++k) {
+        for (size_t i = 0; i &lt; n; ++i) {
+            for (size_t j = 0; j &lt; p; ++j) {
+                for (size_t k = 0; k &lt; m; ++k) {
                     C[i][j] += A[i][k] * B[k][j];
                 }
             }
@@ -1616,21 +1616,21 @@ public:
         size_t m = A[0].size();
         size_t p = B[0].size();
         
-        Matrix C(n, std::vector<float>(p, 0.0f));
+        Matrix C(n, std::vector&lt;float&gt;(p, 0.0f));
         
-        for (size_t ii = 0; ii < n; ii += block_size) {
-            for (size_t jj = 0; jj < p; jj += block_size) {
-                for (size_t kk = 0; kk < m; kk += block_size) {
+        for (size_t ii = 0; ii &lt; n; ii += block_size) {
+            for (size_t jj = 0; jj &lt; p; jj += block_size) {
+                for (size_t kk = 0; kk &lt; m; kk += block_size) {
                     
                     size_t i_end = std::min(ii + block_size, n);
                     size_t j_end = std::min(jj + block_size, p);
                     size_t k_end = std::min(kk + block_size, m);
                     
                     // 计算当前块
-                    for (size_t i = ii; i < i_end; ++i) {
-                        for (size_t j = jj; j < j_end; ++j) {
+                    for (size_t i = ii; i &lt; i_end; ++i) {
+                        for (size_t j = jj; j &lt; j_end; ++j) {
                             float sum = C[i][j];
-                            for (size_t k = kk; k < k_end; ++k) {
+                            for (size_t k = kk; k &lt; k_end; ++k) {
                                 sum += A[i][k] * B[k][j];
                             }
                             C[i][j] = sum;
@@ -1649,17 +1649,17 @@ public:
         size_t m = A[0].size();
         size_t p = B[0].size();
         
-        Matrix C(n, std::vector<float>(p, 0.0f));
+        Matrix C(n, std::vector&lt;float&gt;(p, 0.0f));
         
         // 确保p是8的倍数（AVX一次处理8个float）
         size_t p_aligned = (p / 8) * 8;
         
-        for (size_t i = 0; i < n; ++i) {
-            for (size_t k = 0; k < m; ++k) {
+        for (size_t i = 0; i &lt; n; ++i) {
+            for (size_t k = 0; k &lt; m; ++k) {
                 __m256 a_ik = _mm256_broadcast_ss(&A[i][k]);
                 
                 // 处理对齐的部分
-                for (size_t j = 0; j < p_aligned; j += 8) {
+                for (size_t j = 0; j &lt; p_aligned; j += 8) {
                     __m256 b_kj = _mm256_loadu_ps(&B[k][j]);
                     __m256 c_ij = _mm256_loadu_ps(&C[i][j]);
                     
@@ -1668,7 +1668,7 @@ public:
                 }
                 
                 // 处理剩余部分
-                for (size_t j = p_aligned; j < p; ++j) {
+                for (size_t j = p_aligned; j &lt; p; ++j) {
                     C[i][j] += A[i][k] * B[k][j];
                 }
             }
@@ -1683,13 +1683,13 @@ public:
         size_t m = A[0].size();
         size_t p = B[0].size();
         
-        Matrix C(n, std::vector<float>(p, 0.0f));
+        Matrix C(n, std::vector&lt;float&gt;(p, 0.0f));
         
         #pragma omp parallel for
-        for (size_t i = 0; i < n; ++i) {
-            for (size_t j = 0; j < p; ++j) {
+        for (size_t i = 0; i &lt; n; ++i) {
+            for (size_t j = 0; j &lt; p; ++j) {
                 float sum = 0.0f;
-                for (size_t k = 0; k < m; ++k) {
+                for (size_t k = 0; k &lt; m; ++k) {
                     sum += A[i][k] * B[k][j];
                 }
                 C[i][j] = sum;
@@ -1705,26 +1705,26 @@ public:
         size_t m = A[0].size();
         size_t p = B[0].size();
         
-        Matrix C(n, std::vector<float>(p, 0.0f));
+        Matrix C(n, std::vector&lt;float&gt;(p, 0.0f));
         
         #pragma omp parallel for
-        for (size_t ii = 0; ii < n; ii += block_size) {
-            for (size_t jj = 0; jj < p; jj += block_size) {
-                for (size_t kk = 0; kk < m; kk += block_size) {
+        for (size_t ii = 0; ii &lt; n; ii += block_size) {
+            for (size_t jj = 0; jj &lt; p; jj += block_size) {
+                for (size_t kk = 0; kk &lt; m; kk += block_size) {
                     
                     size_t i_end = std::min(ii + block_size, n);
                     size_t j_end = std::min(jj + block_size, p);
                     size_t k_end = std::min(kk + block_size, m);
                     
                     // 每个块内使用SIMD优化
-                    for (size_t i = ii; i < i_end; ++i) {
-                        for (size_t k = kk; k < k_end; ++k) {
+                    for (size_t i = ii; i &lt; i_end; ++i) {
+                        for (size_t k = kk; k &lt; k_end; ++k) {
                             __m256 a_ik = _mm256_broadcast_ss(&A[i][k]);
                             
                             size_t j_aligned = jj + ((j_end - jj) / 8) * 8;
                             
                             // SIMD处理
-                            for (size_t j = jj; j < j_aligned; j += 8) {
+                            for (size_t j = jj; j &lt; j_aligned; j += 8) {
                                 __m256 b_kj = _mm256_loadu_ps(&B[k][j]);
                                 __m256 c_ij = _mm256_loadu_ps(&C[i][j]);
                                 
@@ -1733,7 +1733,7 @@ public:
                             }
                             
                             // 处理剩余元素
-                            for (size_t j = j_aligned; j < j_end; ++j) {
+                            for (size_t j = j_aligned; j &lt; j_end; ++j) {
                                 C[i][j] += A[i][k] * B[k][j];
                             }
                         }
@@ -1780,9 +1780,9 @@ public:
     
 private:
     static MatrixMultiplier::Matrix generate_matrix(size_t rows, size_t cols) {
-        MatrixMultiplier::Matrix matrix(rows, std::vector<float>(cols));
-        for (size_t i = 0; i < rows; ++i) {
-            for (size_t j = 0; j < cols; ++j) {
+        MatrixMultiplier::Matrix matrix(rows, std::vector&lt;float&gt;(cols));
+        for (size_t i = 0; i &lt; rows; ++i) {
+            for (size_t j = 0; j &lt; cols; ++j) {
                 matrix[i][j] = static_cast<float>(rand()) / RAND_MAX;
             }
         }
@@ -1795,8 +1795,8 @@ private:
         auto result = func();
         auto end = std::chrono::high_resolution_clock::now();
         
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        std::cout << name << ": " << duration.count() << " ms" << std::endl;
+        auto duration = std::chrono::duration_cast&lt;std::chrono::milliseconds&gt;(end - start);
+        std::cout &lt;&lt; name &lt;&lt; ": " &lt;&lt; duration.count() &lt;&lt; " ms" &lt;&lt; std::endl;
     }
 };
 
@@ -1805,12 +1805,12 @@ int main() {
     // 设置OpenMP线程数
     omp_set_num_threads(std::thread::hardware_concurrency());
     
-    std::cout << "Matrix Multiplication Benchmark" << std::endl;
-    std::cout << "Using " << omp_get_max_threads() << " threads" << std::endl;
+    std::cout &lt;&lt; "Matrix Multiplication Benchmark" &lt;&lt; std::endl;
+    std::cout &lt;&lt; "Using " &lt;&lt; omp_get_max_threads() &lt;&lt; " threads" &lt;&lt; std::endl;
     
     // 测试不同大小的矩阵
     for (size_t size : {128, 256, 512}) {
-        std::cout << "\n";
+        std::cout &lt;&lt; "\n";
         MatrixBenchmark::benchmark_all(size);
     }
     

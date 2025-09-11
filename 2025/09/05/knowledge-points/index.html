@@ -1819,6 +1819,530 @@ int main() {
                     </div>
                 </div>
             </div>
+
+            <!-- 知识点卡片15 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
+                <h2 class="text-xl font-bold mb-4 text-primary">15. 实现一个 shared_ptr（线程安全引用计数）</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">手撕一个简化版shared_ptr，需要考虑：控制块、引用计数的原子性、拷贝/移动构造与赋值、析构/重置、别名构造、线程安全边界、与weak_ptr的关系（本实现可不含weak）。</p>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">关键点与设计</h3>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li>控制块（Control Block）单独保存<strong>原子</strong>引用计数与删除器；对象指针与控制块分离，便于别名与自定义删除器。</li>
+                        <li>引用计数递增/递减需使用std::atomic，保证多线程下<strong>引用计数线程安全</strong>（对象本身不保证线程安全）。</li>
+                        <li>拷贝构造/赋值：增加计数；移动构造/赋值：转移指针与控制块，源置空。</li>
+                        <li>析构：计数归零时调用删除器删除对象并释放控制块。</li>
+                        <li>别名构造：共享同一控制块但指向子对象（如容器元素/成员）。</li>
+                        <li>与weak_ptr：生产级实现还需弱计数避免ABA与控制块过早释放（此处省略）。</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">参考实现（教学用，含别名构造）</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include &lt;atomic&gt;
+#include &lt;utility&gt;
+#include &lt;cstddef&gt;
+
+struct DefaultDeleterBase {
+    virtual void destroy(void* p) noexcept = 0;
+    virtual ~DefaultDeleterBase() = default;
+};
+
+template&lt;typename T&gt;
+struct DefaultDeleter : DefaultDeleterBase {
+    void destroy(void* p) noexcept override { delete static_cast&lt;T*&gt;(p); }
+};
+
+struct ControlBlock {
+    std::atomic&lt;long&gt; strong{1};
+    DefaultDeleterBase* deleter{nullptr};
+};
+
+template&lt;typename T&gt;
+class SharedPtr {
+public:
+    // 构造：接管裸指针
+    explicit SharedPtr(T* ptr = nullptr)
+        : ptr_(ptr) {
+        if (ptr_) {
+            cb_ = new ControlBlock{1, new DefaultDeleter&lt;T&gt;()};
+        }
+    }
+
+    // 自定义删除器构造
+    template&lt;typename Deleter&gt;
+    SharedPtr(T* ptr, Deleter d) : ptr_(ptr) {
+        if (ptr_) {
+            struct D : DefaultDeleterBase {
+                Deleter del;
+                explicit D(Deleter dd) : del(std::move(dd)) {}
+                void destroy(void* p) noexcept override { del(static_cast&lt;T*&gt;(p)); }
+            };
+            cb_ = new ControlBlock{1, new D(std::move(d))};
+        }
+    }
+
+    // 别名构造：共享控制块但指向别的地址（如成员）
+    template&lt;typename U&gt;
+    SharedPtr(const SharedPtr&lt;U&gt;&amp; other, T* alias) noexcept
+        : ptr_(alias), cb_(other.cb_) {
+        inc();
+    }
+
+    // 拷贝构造
+    SharedPtr(const SharedPtr&amp; other) noexcept
+        : ptr_(other.ptr_), cb_(other.cb_) { inc(); }
+
+    // 移动构造
+    SharedPtr(SharedPtr&amp;&amp; other) noexcept
+        : ptr_(other.ptr_), cb_(other.cb_) {
+        other.ptr_ = nullptr; other.cb_ = nullptr;
+    }
+
+    // 拷贝赋值
+    SharedPtr&amp; operator=(const SharedPtr&amp; other) noexcept {
+        if (this != &amp;other) { release(); ptr_ = other.ptr_; cb_ = other.cb_; inc(); }
+        return *this;
+    }
+
+    // 移动赋值
+    SharedPtr&amp; operator=(SharedPtr&amp;&amp; other) noexcept {
+        if (this != &amp;other) { release(); ptr_ = other.ptr_; cb_ = other.cb_; other.ptr_ = nullptr; other.cb_ = nullptr; }
+        return *this;
+    }
+
+    ~SharedPtr() { release(); }
+
+    void reset() noexcept { release(); }
+    void reset(T* p) { release(); *this = SharedPtr(p); }
+
+    T* get() const noexcept { return ptr_; }
+    T&amp; operator*() const noexcept { return *ptr_; }
+    T* operator-&gt;() const noexcept { return ptr_; }
+    explicit operator bool() const noexcept { return ptr_ != nullptr; }
+    long use_count() const noexcept { return cb_ ? cb_-&gt;strong.load(std::memory_order_acquire) : 0; }
+
+private:
+    template&lt;typename U&gt; friend class SharedPtr;
+    T* ptr_ = nullptr;
+    ControlBlock* cb_ = nullptr;
+
+    void inc() noexcept { if (cb_) cb_-&gt;strong.fetch_add(1, std::memory_order_acq_rel); }
+    void release() noexcept {
+        if (!cb_) return;
+        if (cb_-&gt;strong.fetch_sub(1, std::memory_order_acq_rel) == 1) {
+            // 最后一个强引用，销毁对象与控制块
+            cb_-&gt;deleter-&gt;destroy(ptr_);
+            delete cb_-&gt;deleter;
+            delete cb_;
+        }
+        ptr_ = nullptr; cb_ = nullptr;
+    }
+};
+
+// 使用示例
+struct Node { int x; };
+int main() {
+    SharedPtr&lt;Node&gt; p(new Node{42});
+    auto q = p; // 引用计数+1
+    SharedPtr&lt;int&gt; alias(p, &amp;p-&gt;x); // 别名构造，控制块共享
+    return alias.use_count() &gt; 0 ? 0 : 1;
+}</code></pre>
+                    </div>
+                    <p class="text-gray-600 text-sm mt-2">注意：此实现仅保证<strong>引用计数</strong>层面的并发安全；对象本身读写需额外同步。生产级还应包含弱计数、类型擦除的删除器优化、make_shared优化（对象与控制块同配）等。</p>
+                </div>
+            </div>
+
+            <!-- 知识点卡片16 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
+                <h2 class="text-xl font-bold mb-4 text-primary">16. 实现归并排序（稳定，O(n log n)）</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">实现归并排序算法，要求稳定、时间复杂度O(n log n)、空间复杂度O(n)。</p>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">思路与性质</h3>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li>分治：递归拆分为左右子序列，分别排序后合并。</li>
+                        <li>稳定性：合并时遇到相等元素保持先后顺序即可。</li>
+                        <li>复杂度：时间O(n log n)，额外空间O(n)用于临时缓冲。</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">参考实现</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include &lt;vector&gt;
+#include &lt;functional&gt;
+
+template&lt;typename T, typename Compare = std::less&lt;T&gt;&gt;
+void merge_sort(std::vector&lt;T&gt;&amp; a, Compare comp = Compare{}) {
+    std::vector&lt;T&gt; buf(a.size());
+    std::function&lt;void(size_t,size_t)&gt; sort_impl = [&](size_t l, size_t r){
+        if (r - l &lt;= 1) return;
+        size_t m = l + (r - l) / 2;
+        sort_impl(l, m);
+        sort_impl(m, r);
+        // 合并 [l,m) 与 [m,r)
+        size_t i = l, j = m, k = l;
+        while (i &lt; m &amp;&amp; j &lt; r) {
+            if (comp(a[i], a[j]) || (!comp(a[j], a[i]))) { // 稳定：相等时取左侧
+                buf[k++] = a[i++];
+            } else {
+                buf[k++] = a[j++];
+            }
+        }
+        while (i &lt; m) buf[k++] = a[i++];
+        while (j &lt; r) buf[k++] = a[j++];
+        for (size_t t = l; t &lt; r; ++t) a[t] = buf[t];
+    };
+    sort_impl(0, a.size());
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识点卡片17 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
+                <h2 class="text-xl font-bold mb-4 text-primary">17. for循环中使用erase的坑与安全写法</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">STL 容器在 for 循环中使用 erase 删除元素会导致什么问题？如何正确写法？</p>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">要点</h3>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li><span class="font-medium">迭代器失效：</span>vector、deque在erase后，<em>被删位置及后续</em>迭代器全部失效；list、forward_list只使被删元素的迭代器失效；map/unordered_* 只使被删元素失效。</li>
+                        <li>安全写法：使用erase返回的迭代器继续遍历，或使用erase-remove惯用法（序列容器）。</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">示例：安全遍历删除</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+#include &lt;list&gt;
+#include &lt;unordered_map&gt;
+
+// 序列容器：用返回迭代器
+void erase_in_vector(std::vector&lt;int&gt;&amp; v) {
+    for (auto it = v.begin(); it != v.end(); ) {
+        if (*it % 2 == 0) it = v.erase(it); // 使用返回值
+        else ++it;
+    }
+}
+
+// 序列容器：erase-remove 惯用法
+void erase_remove(std::vector&lt;int&gt;&amp; v) {
+    v.erase(std::remove_if(v.begin(), v.end(), [](int x){ return x % 2 == 0; }), v.end());
+}
+
+// 关联容器：返回下一个迭代器
+void erase_in_unordered(std::unordered_map&lt;int,int&gt;&amp; m) {
+    for (auto it = m.begin(); it != m.end(); ) {
+        if (it-&gt;first &lt; 0) it = m.erase(it); else ++it;
+    }
+}
+
+// list：erase后其他迭代器有效
+void erase_in_list(std::list&lt;int&gt;&amp; lst) {
+    for (auto it = lst.begin(); it != lst.end(); ) {
+        if (*it == 0) it = lst.erase(it); else ++it;
+    }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识点卡片18 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
+                <h2 class="text-xl font-bold mb-4 text-primary">18. 完美转发（Perfect Forwarding）</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题与动机</h3>
+                    <p class="text-gray-700">模板函数接收参数并转发给另一个函数/构造函数时，如何精确保留实参的值类别（左值/右值）、cv限定与引用性？完美转发通过<strong>转发引用</strong>+<code>std::forward</code>实现。</p>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">要点</h3>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li>形参形如 <code>T&amp;&amp;</code> 且模板类型推导到同名T时是<strong>转发引用</strong>（不是纯右值引用）。</li>
+                        <li><code>std::forward&lt;T&gt;(x)</code>：若T推导为左值引用则返回左值，否则返回右值，从而保留值类别。</li>
+                        <li>典型应用：工厂/容器<strong>emplace</strong>、包装器、事件分发。</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">示例</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include &lt;utility&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+
+struct Foo {
+    std::string s;
+    Foo(const std::string&amp; x) : s(x) {}      // 拷贝构造
+    Foo(std::string&amp;&amp; x) : s(std::move(x)) {} // 移动构造
+};
+
+template&lt;typename... Args&gt;
+Foo make_foo(Args&amp;&amp;... args) {
+    return Foo(std::forward&lt;Args&gt;(args)...); // 完美转发
+}
+
+template&lt;typename T, typename... Args&gt;
+T&amp; emplace_back(std::vector&lt;T&gt;&amp; v, Args&amp;&amp;... args) {
+    v.emplace_back(std::forward&lt;Args&gt;(args)...);
+    return v.back();
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识点卡片19 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
+                <h2 class="text-xl font-bold mb-4 text-primary">19. read() 从用户态到数据返回的内核路径</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">从用户态调用 <code>read(fd, buf, count)</code> 到数据返回，内核完整处理流程是什么？</p>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">核心流程（概览）</h3>
+                    <ol class="list-decimal ml-5 text-gray-700 mb-2">
+                        <li>用户态：libc封装触发系统调用；参数从用户栈/寄存器传入。</li>
+                        <li>陷入内核：syscall入口切换到内核态，建立内核栈/pt_regs。</li>
+                        <li>VFS层：根据进程<code>files_struct</code>查fd对应<code>struct file</code>，定位<code>file_operations</code>。</li>
+                        <li>文件系统：调用<code>vfs_read -&gt; __vfs_read -&gt; file-&gt;f_op-&gt;read_iter</code>等具体fs实现。</li>
+                        <li>页缓存：先查页缓存（page cache）。命中直接拷贝；未命中触发读盘：</li>
+                        <ul class="list-disc ml-6">
+                            <li>生成bio请求，经块层（elevator/blk-mq）到设备驱动，DMA从设备读入页。</li>
+                            <li>可能合并、预读（readahead）、调度；中断完成后唤醒等待者。</li>
+                        </ul>
+                        <li>拷贝到用户：<code>copy_to_user</code> 将页缓存数据拷入用户缓冲区（Direct I/O 可绕过页缓存）。</li>
+                        <li>返回用户态：设置返回值（已读字节）、恢复寄存器/标志，返回用户态。</li>
+                    </ol>
+                    <p class="text-gray-700">补充：缓存一致性、脏页回写、文件偏移更新（<code>file-&gt;f_pos</code>）、信号中断、非阻塞读、管道/套接字路径与设备驱动差异。</p>
+                </div>
+            </div>
+
+            <!-- 知识点卡片20 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
+                <h2 class="text-xl font-bold mb-4 text-primary">20. Linux内存管理与虚拟内存的意义</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">Linux 内核的内存管理机制如何工作？为何引入虚拟内存？</p>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">关键概念</h3>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li>虚拟内存：每进程独立地址空间，地址经页表由MMU映射到物理内存/交换区。</li>
+                        <li>按需分页（Demand Paging）、COW、页缓存、匿名页、mmap映射。</li>
+                        <li>分配器：伙伴系统（页级）+ slab/slub（小对象缓存）。</li>
+                        <li>TLB 与HugeTLB：加速地址转换；透明大页（THP）。</li>
+                    </ul>
+                    <p class="text-gray-700"><span class="font-medium">引入虚拟内存的原因：</span>隔离与保护、扩大可用地址空间、简化内存管理接口、支持内存映射文件/共享内存、提升I/O（页缓存）。</p>
+                </div>
+            </div>
+
+            <!-- 知识点卡片21 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
+                <h2 class="text-xl font-bold mb-4 text-primary">21. 如何裁剪Linux内核（步骤与考量）</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">步骤</h3>
+                    <ol class="list-decimal ml-5 text-gray-700 mb-2">
+                        <li>获取源码并确定目标平台（CPU、外设、文件系统、启动方式）。</li>
+                        <li>以现有配置为基：<code>make oldconfig</code>，再 <code>make menuconfig</code> 关闭不必要的驱动/文件系统/调试。</li>
+                        <li>选择内核特性：抢占模型、时钟源/频率、内存模型、NUMA/CPU数量、cgroup等。</li>
+                        <li>编译与打包：<code>make -jN bzImage modules</code>；制作initramfs，拷贝到引导分区；更新引导器。</li>
+                        <li>启动与验证：串口/串口控制台日志；逐步精简，启用必要的调试选项。</li>
+                    </ol>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">考量</h3>
+                    <ul class="list-disc ml-5 text-gray-700">
+                        <li>硬件支持不可缺：存储/网卡/控制台/根文件系统。</li>
+                        <li>体积与启动时间vs功能：模块化与内置的权衡。</li>
+                        <li>安全与调试：KASLR、SELinux、lockdep、kmemleak等开关对体积/性能影响。</li>
+                        <li>升级策略：与发行版工具链/内核ABI兼容性。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 知识点卡片22 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
+                <h2 class="text-xl font-bold mb-4 text-primary">22. Linux文件系统的原理与管理</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">概览</h3>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li>VFS 抽象：统一的inode/dentry/super_block接口；具体实现如 ext4、xfs、btrfs。</li>
+                        <li>inode：元数据（权限、大小、时间戳、数据块指针/extent）。</li>
+                        <li>dentry：目录项缓存，加速路径解析（dcache）。</li>
+                        <li>页缓存与回写：提高读写性能；脏页由回写线程刷盘；日志文件系统提供崩溃一致性。</li>
+                    </ul>
+                    <p class="text-gray-700">ext4 采用extent、延迟分配、日志；目录采用HTree；quota、ACL、xattr 支持。</p>
+                </div>
+            </div>
+
+            <!-- 知识点卡片23 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
+                <h2 class="text-xl font-bold mb-4 text-primary">23. 编译器与连接器的职责</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">答案</h3>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li><span class="font-medium">编译器（Compiler）：</span>将源代码翻译为目标文件（.o），包含词法/语法/语义分析、优化、中间表示、生成汇编，随后经汇编器生成机器码。</li>
+                        <li><span class="font-medium">连接器（Linker）：</span>将多个目标文件与库合并为可执行/共享库，完成符号解析、重定位、合并节、解决依赖、处理初始化/构造器节，生成可装载文件。</li>
+                        <li>运行时加载器（ld-linux）：装载ELF、执行动态重定位、解析依赖库、运行初始化段。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 知识点卡片24 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
+                <h2 class="text-xl font-bold mb-4 text-primary">24. 状态机（State Machine）实现方案</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">常见方案</h3>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li>switch/enum 驱动的状态转移（轻量、直观）。</li>
+                        <li>表驱动（转移表/函数表），易扩展、可数据化。</li>
+                        <li>面向对象的状态模式（State Pattern），每个状态独立类，易维护。</li>
+                        <li>基于事件循环与回调/协程的异步状态机，配合计时器/IO事件。</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">示例：表驱动状态机</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="cpp p-4 text-sm overflow-x-auto">#include &lt;functional&gt;
+#include &lt;unordered_map&gt;
+
+enum class State { Idle, Running, Stopped };
+enum class Event { Start, Stop, Reset };
+
+struct FSM {
+    State s{State::Idle};
+    using Action = std::function&lt;void()&gt;;
+    std::unordered_map&lt;long, std::pair&lt;State, Action&gt;&gt; trans;
+
+    static long key(State s, Event e) { return (long)s * 10 + (long)e; }
+    void add(State from, Event e, State to, Action a) { trans[key(from,e)] = {to, std::move(a)}; }
+    void on(Event e) {
+        auto it = trans.find(key(s,e));
+        if (it != trans.end()) { auto [to, act] = it-&gt;second; if (act) act(); s = to; }
+    }
+};</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识点卡片25 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
+                <h2 class="text-xl font-bold mb-4 text-primary">25. 程序在什么情况下会产生 Core Dump？</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">常见触发</h3>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li>SIGSEGV（非法地址访问）、SIGABRT（abort/断言失败）、SIGFPE（算术错误）、SIGILL（非法指令）、SIGBUS（总线错误）。</li>
+                        <li>栈溢出、双重释放/野指针解引用、越界访问、数据竞争导致的未定义行为。</li>
+                        <li>ulimit/core_pattern 设置允许生成核心转储。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 知识点卡片26 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
+                <h2 class="text-xl font-bold mb-4 text-primary">26. Core Dump 的定位与分析流程</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">步骤</h3>
+                    <ol class="list-decimal ml-5 text-gray-700 mb-2">
+                        <li>开启核心转储：<code>ulimit -c unlimited</code>；配置<code>/proc/sys/kernel/core_pattern</code>。</li>
+                        <li>使用调试信息构建（-g，关闭优化或降级优化便于阅读）。</li>
+                        <li>加载分析：<code>gdb ./prog core.x</code>；查看 <code>bt</code>、<code>thread apply all bt</code>、<code>info locals</code>、<code>p var</code>。</li>
+                        <li>符号与地址：<code>info files</code>、<code>info sharedlibrary</code>；<code>addr2line</code> 对无符号库定位。</li>
+                        <li>复现场景：根据调用栈/日志/监控重放输入；加入ASAN/UBSAN提升发现率。</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- 知识点卡片27 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="performance">
+                <h2 class="text-xl font-bold mb-4 text-primary">27. 性能调优思路与常用工具</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">思路</h3>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li>目标明确：SLO/指标；建立基线；可测可复现。</li>
+                        <li>定位瓶颈：CPU/内存/IO/锁/网络；先系统级（perf/top/iostat）、再进程级（perf record/FlameGraph）。</li>
+                        <li>验证迭代：一次只改一处，压测验证；对比前后。</li>
+                    </ul>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">工具</h3>
+                    <ul class="list-disc ml-5 text-gray-700">
+                        <li>perf、bcc/eBPF（funclatency, offcputime）、FlameGraph。</li>
+                        <li>valgrind/callgrind、gperftools、heaptrack；ASAN/TSAN/UBSAN。</li>
+                        <li>网络：ss/tcpdump/sar；存储：iostat/blktrace；锁：perf lock/sched。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 知识点卡片28 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
+                <h2 class="text-xl font-bold mb-4 text-primary">28. 使用 GDB 调试多线程程序</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">常用操作</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="bash p-4 text-sm overflow-x-auto"># 附加或启动
+gdb -p &lt;pid&gt;
+gdb --args ./app arg1 arg2
+
+# 线程查看与切换
+(gdb) info threads
+(gdb) thread apply all bt
+(gdb) thread &lt;tid&gt;
+(gdb) bt
+
+# 只运行当前线程（便于复现竞争）
+(gdb) set scheduler-locking on
+
+# 观察变量/断点
+(gdb) watch var
+(gdb) break file.cpp:123
+(gdb) continue</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知识点卡片29 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
+                <h2 class="text-xl font-bold mb-4 text-primary">29. NUMA 与非NUMA的区别与优势</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">答案</h3>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li><span class="font-medium">非NUMA（UMA）：</span>所有CPU访问内存延迟均匀；规模扩展受限。</li>
+                        <li><span class="font-medium">NUMA：</span>内存分为结点（近/远内存），本地访问低延迟、高带宽，远端代价更高。</li>
+                        <li><span class="font-medium">优势：</span>可横向扩展；就近分配提高缓存命中与带宽利用。</li>
+                        <li>优化：<code>numactl</code>策略、线程绑核、<span class="font-medium">first-touch</span>分配、跨NUMA分片、减少跨结点共享。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 知识点卡片30 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
+                <h2 class="text-xl font-bold mb-4 text-primary">30. 三层缓存的大致延迟</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">参考量级（不同CPU会有差异）</h3>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li>L1：~1ns（~4 个周期）</li>
+                        <li>L2：~3–4ns（~12 个周期）</li>
+                        <li>L3：~10–20ns（~30–60 个周期，与共享/拓扑相关）</li>
+                        <li>内存（DRAM）：~60–120ns（几十到上百个周期）</li>
+                    </ul>
+                    <p class="text-gray-700">优化方向：提高局部性（数据/指令）、预取、减少跨核/跨NUMA访问、合并访问、向量化、避免伪共享。</p>
+                </div>
+            </div>
         </div>
     </main>
 

@@ -118,8 +118,7 @@
                 <h2 class="text-xl font-bold mb-4 text-primary">1. Copy On Write (COW) 机制</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">什么是copy on
-                        write？C++中如何利用RAII和智能指针实现一个COW的字符串类？Linux中fork()的COW机制是如何影响C++程序内存使用和性能的？</p>
+                    <p class="text-gray-700">阐述写时复制（COW）原理，给出基于智能指针的 C++ 字符串实现，并说明 fork 的 COW 对内存与性能的影响。</p>
                 </div>
 
                 <div class="mb-4">
@@ -206,9 +205,7 @@ public:
                 <h2 class="text-xl font-bold mb-4 text-primary">2. 虚函数表内存布局</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">
-                        在你所选用的编译器（例如gcc）中，虚函数表的内存布局是怎样的？在Linux下，如何通过gdb调试器或直接解析二进制文件（使用objdump或readelf）来验证一个C++类的内存布局？
-                    </p>
+                    <p class="text-gray-700">说明 GCC/Linux 环境下的虚函数表与对象内存布局，并给出 gdb/objdump/readelf 的验证方法。</p>
                 </div>
 
                 <div class="mb-4">
@@ -268,9 +265,7 @@ public:
                 <h2 class="text-xl font-bold mb-4 text-primary">3. 零拷贝(Zero-Copy)机制</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">
-                        零拷贝（Zero-Copy）是什么？Linux中sendfile()等系统调用如何实现零拷贝？在C++网络编程中，如何利用这些系统调用（例如，在传输文件时）来提升性能？与使用传统的read/write方式相比，需要注意什么？
-                    </p>
+                    <p class="text-gray-700">阐述零拷贝原理、sendfile 的实现路径与适用场景，并与 read/write 的注意点进行对比。</p>
                 </div>
 
                 <div class="mb-4">
@@ -365,8 +360,7 @@ public:
                 <h2 class="text-xl font-bold mb-4 text-primary">4. Linux信号(Signal)处理</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">linux中的信号（Signal）是什么？用在程序中一般处理哪些信号？如何优雅地处理SIGTERM和SIGINT信号来实现服务的平滑安全地退出？
-                    </p>
+                    <p class="text-gray-700">说明常见 Linux 信号与处理策略，并给出优雅处理 SIGTERM/SIGINT 的实现。</p>
                 </div>
 
                 <div class="mb-4">
@@ -463,7 +457,7 @@ int main() {
                 <h2 class="text-xl font-bold mb-4 text-primary">5. Linux进程地址空间布局</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">请描述Linux进程的地址空间布局。另外，new char[1]可能会分配多少内存？</p>
+                    <p class="text-gray-700">概述 Linux 进程地址空间布局，并说明 new char[1] 实际分配为何大于 1 字节。</p>
                 </div>
 
                 <div class="mb-4">
@@ -528,7 +522,7 @@ int main() {
                 <h2 class="text-xl font-bold mb-4 text-primary">6. Linux守护进程(Daemon)</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">什么是守护进程？需要先后调用哪些系统调用才能让一个进程成为一个地道的守护进程？（这个当然不需要背下来，能说出其中几个即可）。</p>
+                    <p class="text-gray-700">定义守护进程，并给出标准 daemonize 步骤与代码实现。</p>
                 </div>
 
                 <div class="mb-4">
@@ -642,7 +636,7 @@ int main() {
                 <h2 class="text-xl font-bold mb-4 text-primary">7. CPU热点分析</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">如何发现程序中的CPU热点（Hotspot）？你使用过哪个/些性能剖析（profiling）工具？介绍一下其使用方法。</p>
+                    <p class="text-gray-700">如何定位 CPU 热点？列举常用性能分析工具及关键用法。</p>
                 </div>
 
                 <div class="mb-4">
@@ -699,9 +693,7 @@ gprof ./my_program gmon.out --graph  # 生成图形化报告</code></pre>
                 <h2 class="text-xl font-bold mb-4 text-primary">8. 内存错误检测</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">
-                        在Linux中如何发现程序中的内存泄漏和非法内存访问？你一般是怎么做的？请举例说明如何使用Valgrind的memcheck工具来检测C++程序中的内存错误，以及如何让Valgrind更好地理解STL和智能指针？
-                    </p>
+                    <p class="text-gray-700">如何检测内存泄漏与非法访问？演示 Valgrind memcheck 的高效用法与注意点。</p>
                 </div>
 
                 <div class="mb-4">
@@ -767,8 +759,7 @@ valgrind --leak-check=full --suppressions=suppressions.txt ./my_program</code></
                 <h2 class="text-xl font-bold mb-4 text-primary">9. 文件描述符(FD)管理</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">什么是文件描述符？它的最大值由什么决定？如何修改？如果遇到"Too many open
-                        files"错误，如何排查和解决？如何利用RAII思想设计文件描述符的封装类，以避免泄漏？</p>
+                    <p class="text-gray-700">解释文件描述符与配额限制，排查 “Too many open files” 的方法，并给出 RAII 封装示例。</p>
                 </div>
 
                 <div class="mb-4">
@@ -892,8 +883,7 @@ void use_file() {
                 <h2 class="text-xl font-bold mb-4 text-primary">10. 多线程编程与死锁检测</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">你写过多线程的程序吗？用的是linux中的pthread
-                        api还是C++中的std::thread相关的api？两者有何区别和联系？如果你写的一个程序a正在运行，你怀疑它发生了死锁，在不杀死这个进程的情况下，你如何确认它是否死锁？</p>
+                    <p class="text-gray-700">对比 pthread 与 std::thread；在不终止进程的前提下，如何确认为死锁并定位。</p>
                 </div>
 
                 <div class="mb-4">
@@ -996,8 +986,7 @@ int main() {
                 <h2 class="text-xl font-bold mb-4 text-primary">11. IO多路复用与异步API</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">
-                        select,poll,epoll，其中哪些是同步api、哪些是异步api？你在linux中使用过异步api吗？在C++中是如何封装的（使用libevent、libuv、asio还是自己封装的）？（你选择的方案）采用的是reactor还是proactor？它们有何区别？你对比过两者的性能差异吗？
+                    <p class="text-gray-700">select/poll/epoll 是否异步？常用封装（libevent/libuv/asio）及 Reactor/Proactor 的区别与取舍。
                     </p>
                 </div>
 
@@ -1119,7 +1108,7 @@ int main() {
                 <h2 class="text-xl font-bold mb-4 text-primary">12. 二叉搜索树实现</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">简单用C++实现二叉搜索树，支持插入、删除和查找操作。</p>
+                    <p class="text-gray-700">实现支持插入、删除与查找的二叉搜索树。</p>
                 </div>
 
                 <div class="mb-4">
@@ -1293,7 +1282,7 @@ int main() {
                 <h2 class="text-xl font-bold mb-4 text-primary">13. 无锁环形缓冲区（单生产者多消费者）</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">基于共享内存的环形缓冲区用C++实现单生产者多消费者，要求无锁。</p>
+                    <p class="text-gray-700">基于共享内存实现单生产者多消费者的无锁环形缓冲区。</p>
                 </div>
 
                 <div class="mb-4">
@@ -1554,7 +1543,7 @@ void producer_example() {
                 <h2 class="text-xl font-bold mb-4 text-primary">14. 高效矩阵乘法实现</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">用C++高效实现矩阵乘法，可以从算法、指令集、并行角度优化性能。</p>
+                    <p class="text-gray-700">从算法、缓存、SIMD 与并行角度优化矩阵乘法的 C++ 实现。</p>
                 </div>
 
                 <div class="mb-4">
@@ -1825,7 +1814,7 @@ int main() {
                 <h2 class="text-xl font-bold mb-4 text-primary">15. 实现一个 shared_ptr（线程安全引用计数）</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">手撕一个简化版shared_ptr，需要考虑：控制块、引用计数的原子性、拷贝/移动构造与赋值、析构/重置、别名构造、线程安全边界、与weak_ptr的关系（本实现可不含weak）。</p>
+                    <p class="text-gray-700">实现简化版 shared_ptr：控制块、原子引用计数、拷贝/移动、别名构造与线程安全边界。</p>
                 </div>
 
                 <div class="mb-4">
@@ -1954,7 +1943,9 @@ int main() {
     return alias.use_count() &gt; 0 ? 0 : 1;
 }</code></pre>
                     </div>
-                    <p class="text-gray-600 text-sm mt-2">注意：此实现仅保证<strong>引用计数</strong>层面的并发安全；对象本身读写需额外同步。生产级还应包含弱计数、类型擦除的删除器优化、make_shared优化（对象与控制块同配）等。</p>
+                    <p class="text-gray-600 text-sm mt-2">
+                        注意：此实现仅保证<strong>引用计数</strong>层面的并发安全；对象本身读写需额外同步。生产级还应包含弱计数、类型擦除的删除器优化、make_shared优化（对象与控制块同配）等。
+                    </p>
                 </div>
             </div>
 
@@ -1963,7 +1954,7 @@ int main() {
                 <h2 class="text-xl font-bold mb-4 text-primary">16. 实现归并排序（稳定，O(n log n)）</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">实现归并排序算法，要求稳定、时间复杂度O(n log n)、空间复杂度O(n)。</p>
+                    <p class="text-gray-700">实现稳定的归并排序（时间 O(n log n)、空间 O(n)）。</p>
                 </div>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">思路与性质</h3>
@@ -2012,12 +2003,14 @@ void merge_sort(std::vector&lt;T&gt;&amp; a, Compare comp = Compare{}) {
                 <h2 class="text-xl font-bold mb-4 text-primary">17. for循环中使用erase的坑与安全写法</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">STL 容器在 for 循环中使用 erase 删除元素会导致什么问题？如何正确写法？</p>
+                    <p class="text-gray-700">for 循环中使用 erase 的风险与安全写法。</p>
                 </div>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">要点</h3>
                     <ul class="list-disc ml-5 text-gray-700 mb-2">
-                        <li><span class="font-medium">迭代器失效：</span>vector、deque在erase后，<em>被删位置及后续</em>迭代器全部失效；list、forward_list只使被删元素的迭代器失效；map/unordered_* 只使被删元素失效。</li>
+                        <li><span
+                                class="font-medium">迭代器失效：</span>vector、deque在erase后，<em>被删位置及后续</em>迭代器全部失效；list、forward_list只使被删元素的迭代器失效；map/unordered_*
+                            只使被删元素失效。</li>
                         <li>安全写法：使用erase返回的迭代器继续遍历，或使用erase-remove惯用法（序列容器）。</li>
                     </ul>
                 </div>
@@ -2064,8 +2057,8 @@ void erase_in_list(std::list&lt;int&gt;&amp; lst) {
             <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
                 <h2 class="text-xl font-bold mb-4 text-primary">18. 完美转发（Perfect Forwarding）</h2>
                 <div class="mb-4">
-                    <h3 class="font-semibold text-lg mb-2">问题与动机</h3>
-                    <p class="text-gray-700">模板函数接收参数并转发给另一个函数/构造函数时，如何精确保留实参的值类别（左值/右值）、cv限定与引用性？完美转发通过<strong>转发引用</strong>+<code>std::forward</code>实现。</p>
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">什么是完美转发？为何需要？如何通过转发引用 + <code>std::forward</code> 保留值类别。</p>
                 </div>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">要点</h3>
@@ -2108,14 +2101,15 @@ T&amp; emplace_back(std::vector&lt;T&gt;&amp; v, Args&amp;&amp;... args) {
                 <h2 class="text-xl font-bold mb-4 text-primary">19. read() 从用户态到数据返回的内核路径</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">从用户态调用 <code>read(fd, buf, count)</code> 到数据返回，内核完整处理流程是什么？</p>
+                    <p class="text-gray-700">从 read 调用到数据返回的内核路径（VFS、页缓存、块层、copy_to_user）。</p>
                 </div>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">核心流程（概览）</h3>
                     <ol class="list-decimal ml-5 text-gray-700 mb-2">
                         <li>用户态：libc封装触发系统调用；参数从用户栈/寄存器传入。</li>
                         <li>陷入内核：syscall入口切换到内核态，建立内核栈/pt_regs。</li>
-                        <li>VFS层：根据进程<code>files_struct</code>查fd对应<code>struct file</code>，定位<code>file_operations</code>。</li>
+                        <li>VFS层：根据进程<code>files_struct</code>查fd对应<code>struct file</code>，定位<code>file_operations</code>。
+                        </li>
                         <li>文件系统：调用<code>vfs_read -&gt; __vfs_read -&gt; file-&gt;f_op-&gt;read_iter</code>等具体fs实现。</li>
                         <li>页缓存：先查页缓存（page cache）。命中直接拷贝；未命中触发读盘：</li>
                         <ul class="list-disc ml-6">
@@ -2125,7 +2119,8 @@ T&amp; emplace_back(std::vector&lt;T&gt;&amp; v, Args&amp;&amp;... args) {
                         <li>拷贝到用户：<code>copy_to_user</code> 将页缓存数据拷入用户缓冲区（Direct I/O 可绕过页缓存）。</li>
                         <li>返回用户态：设置返回值（已读字节）、恢复寄存器/标志，返回用户态。</li>
                     </ol>
-                    <p class="text-gray-700">补充：缓存一致性、脏页回写、文件偏移更新（<code>file-&gt;f_pos</code>）、信号中断、非阻塞读、管道/套接字路径与设备驱动差异。</p>
+                    <p class="text-gray-700">
+                        补充：缓存一致性、脏页回写、文件偏移更新（<code>file-&gt;f_pos</code>）、信号中断、非阻塞读、管道/套接字路径与设备驱动差异。</p>
                 </div>
             </div>
 
@@ -2134,7 +2129,7 @@ T&amp; emplace_back(std::vector&lt;T&gt;&amp; v, Args&amp;&amp;... args) {
                 <h2 class="text-xl font-bold mb-4 text-primary">20. Linux内存管理与虚拟内存的意义</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">问题描述</h3>
-                    <p class="text-gray-700">Linux 内核的内存管理机制如何工作？为何引入虚拟内存？</p>
+                    <p class="text-gray-700">Linux 内存管理机制概览与虚拟内存的动机。</p>
                 </div>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">关键概念</h3>
@@ -2144,13 +2139,14 @@ T&amp; emplace_back(std::vector&lt;T&gt;&amp; v, Args&amp;&amp;... args) {
                         <li>分配器：伙伴系统（页级）+ slab/slub（小对象缓存）。</li>
                         <li>TLB 与HugeTLB：加速地址转换；透明大页（THP）。</li>
                     </ul>
-                    <p class="text-gray-700"><span class="font-medium">引入虚拟内存的原因：</span>隔离与保护、扩大可用地址空间、简化内存管理接口、支持内存映射文件/共享内存、提升I/O（页缓存）。</p>
+                    <p class="text-gray-700"><span
+                            class="font-medium">引入虚拟内存的原因：</span>隔离与保护、扩大可用地址空间、简化内存管理接口、支持内存映射文件/共享内存、提升I/O（页缓存）。</p>
                 </div>
             </div>
 
             <!-- 知识点卡片21 -->
             <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
-                <h2 class="text-xl font-bold mb-4 text-primary">21. 如何裁剪Linux内核（步骤与考量）</h2>
+                <h2 class="text-xl font-bold mb-4 text-primary">21. 裁剪 Linux 内核：步骤与考量</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">步骤</h3>
                     <ol class="list-decimal ml-5 text-gray-700 mb-2">
@@ -2174,7 +2170,7 @@ T&amp; emplace_back(std::vector&lt;T&gt;&amp; v, Args&amp;&amp;... args) {
 
             <!-- 知识点卡片22 -->
             <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="interview">
-                <h2 class="text-xl font-bold mb-4 text-primary">22. Linux文件系统的原理与管理</h2>
+                <h2 class="text-xl font-bold mb-4 text-primary">22. Linux 文件系统：原理与管理</h2>
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">概览</h3>
                     <ul class="list-disc ml-5 text-gray-700 mb-2">
@@ -2193,10 +2189,30 @@ T&amp; emplace_back(std::vector&lt;T&gt;&amp; v, Args&amp;&amp;... args) {
                 <div class="mb-4">
                     <h3 class="font-semibold text-lg mb-2">答案</h3>
                     <ul class="list-disc ml-5 text-gray-700 mb-2">
-                        <li><span class="font-medium">编译器（Compiler）：</span>将源代码翻译为目标文件（.o），包含词法/语法/语义分析、优化、中间表示、生成汇编，随后经汇编器生成机器码。</li>
-                        <li><span class="font-medium">连接器（Linker）：</span>将多个目标文件与库合并为可执行/共享库，完成符号解析、重定位、合并节、解决依赖、处理初始化/构造器节，生成可装载文件。</li>
+                        <li><span
+                                class="font-medium">编译器（Compiler）：</span>将源代码翻译为目标文件（.o），包含词法/语法/语义分析、优化、中间表示、生成汇编，随后经汇编器生成机器码。
+                        </li>
+                        <li><span
+                                class="font-medium">连接器（Linker）：</span>将多个目标文件与库合并为可执行/共享库，完成符号解析、重定位、合并节、解决依赖、处理初始化/构造器节，生成可装载文件。
+                        </li>
                         <li>运行时加载器（ld-linux）：装载ELF、执行动态重定位、解析依赖库、运行初始化段。</li>
                     </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">命令示例</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="bash p-4 text-sm overflow-x-auto"># 1) 编译为目标文件
+gcc -c a.c b.c   # 生成 a.o b.o
+
+# 2) 连接生成可执行文件，并导出链接映射
+gcc a.o b.o -o app -Wl,-Map=app.map
+
+# 3) 观察节/符号/依赖
+readelf -S app | less
+nm -C app | head
+ldd app</code></pre>
+                    </div>
                 </div>
             </div>
 
@@ -2249,6 +2265,22 @@ struct FSM {
                         <li>ulimit/core_pattern 设置允许生成核心转储。</li>
                     </ul>
                 </div>
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">快速检查与启用</h3>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyCode(this)">复制</button>
+                        <pre><code class="bash p-4 text-sm overflow-x-auto"># 临时开启当前会话 core dump（无限制）
+ulimit -c unlimited
+
+# 查看/设置 core 文件命名规则
+cat /proc/sys/kernel/core_pattern
+echo "/tmp/core.%e.%p.%t" | sudo tee /proc/sys/kernel/core_pattern
+
+# 运行程序并在崩溃后用 gdb 分析
+./app
+gdb ./app /tmp/core.app.12345.1699999999</code></pre>
+                    </div>
+                </div>
             </div>
 
             <!-- 知识点卡片26 -->
@@ -2259,8 +2291,11 @@ struct FSM {
                     <ol class="list-decimal ml-5 text-gray-700 mb-2">
                         <li>开启核心转储：<code>ulimit -c unlimited</code>；配置<code>/proc/sys/kernel/core_pattern</code>。</li>
                         <li>使用调试信息构建（-g，关闭优化或降级优化便于阅读）。</li>
-                        <li>加载分析：<code>gdb ./prog core.x</code>；查看 <code>bt</code>、<code>thread apply all bt</code>、<code>info locals</code>、<code>p var</code>。</li>
-                        <li>符号与地址：<code>info files</code>、<code>info sharedlibrary</code>；<code>addr2line</code> 对无符号库定位。</li>
+                        <li>加载分析：<code>gdb ./prog core.x</code>；查看
+                            <code>bt</code>、<code>thread apply all bt</code>、<code>info locals</code>、<code>p var</code>。
+                        </li>
+                        <li>符号与地址：<code>info files</code>、<code>info sharedlibrary</code>；<code>addr2line</code>
+                            对无符号库定位。</li>
                         <li>复现场景：根据调用栈/日志/监控重放输入；加入ASAN/UBSAN提升发现率。</li>
                     </ol>
                 </div>
@@ -2324,7 +2359,8 @@ gdb --args ./app arg1 arg2
                         <li><span class="font-medium">非NUMA（UMA）：</span>所有CPU访问内存延迟均匀；规模扩展受限。</li>
                         <li><span class="font-medium">NUMA：</span>内存分为结点（近/远内存），本地访问低延迟、高带宽，远端代价更高。</li>
                         <li><span class="font-medium">优势：</span>可横向扩展；就近分配提高缓存命中与带宽利用。</li>
-                        <li>优化：<code>numactl</code>策略、线程绑核、<span class="font-medium">first-touch</span>分配、跨NUMA分片、减少跨结点共享。</li>
+                        <li>优化：<code>numactl</code>策略、线程绑核、<span
+                                class="font-medium">first-touch</span>分配、跨NUMA分片、减少跨结点共享。</li>
                     </ul>
                 </div>
             </div>

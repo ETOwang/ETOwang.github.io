@@ -36,30 +36,102 @@
         }
     </script>
     <style type="text/tailwindcss">
+        /* 基础与主题增强（放在 base 层） */
+        @layer base {
+            html { scroll-behavior: smooth; }
+            body { background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); }
+        }
+
         @layer utilities {
+            /* 容器与排版 */
+            .container { max-width: 1200px; }
+            .prose { color: #334155; }
+
             .card-shadow {
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                box-shadow: 0 6px 14px -6px rgba(15, 23, 42, 0.15);
             }
             .card-hover {
-                transition: transform 0.2s, box-shadow 0.2s;
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
             }
             .card-hover:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                transform: translateY(-4px);
+                box-shadow: 0 18px 30px -12px rgba(15, 23, 42, 0.25);
             }
+            .card {
+                position: relative;
+                border: 1px solid rgba(148, 163, 184, 0.2);
+                background: #fff;
+            }
+            .card h2 { letter-spacing: 0.2px; }
+            .card h3 { color: #0f172a; }
+            .card p { color: #334155; }
+            .card ul { color: #334155; }
+            .card ol { color: #334155; }
+
+            /* 区块分隔，使信息层级更清晰 */
+            .card .mb-4 + .mb-4 { border-top: 1px dashed rgba(148, 163, 184, 0.35); padding-top: 1rem; }
+
+            /* 分类徽标（根据 data-category 自动显示） */
+            .card::after {
+                content: "";
+                position: absolute;
+                top: 14px; right: 16px;
+                font-size: 11px;
+                padding: 2px 8px;
+                border-radius: 999px;
+                background: #e2e8f0;
+                color: #0f172a;
+                letter-spacing: .3px;
+                text-transform: none;
+                opacity: .9;
+            }
+            .card[data-category="cpp"]::after { content: "C++"; background:#dbeafe; color:#1e3a8a; }
+            .card[data-category="linux"]::after { content: "Linux"; background:#dcfce7; color:#14532d; }
+            .card[data-category="network"]::after { content: "网络"; background:#fae8ff; color:#6b21a8; }
+            .card[data-category="performance"]::after { content: "性能优化"; background:#fee2e2; color:#7f1d1d; }
+            .card[data-category="interview"]::after { content: "面试题"; background:#fef9c3; color:#854d0e; }
+
+            /* 过滤按钮样式优化 */
+            .filter-btn {
+                border: 1px solid rgba(148, 163, 184, 0.4);
+                background: #f1f5f9;
+                color: #0f172a;
+                transition: all .15s ease;
+            }
+            .filter-btn:hover { background: #e2e8f0; }
+            .filter-btn.active {
+                background: linear-gradient(180deg, #3b82f6, #2563eb);
+                color: #fff; border-color: transparent;
+                box-shadow: 0 6px 18px -6px rgba(37, 99, 235, .35);
+            }
+            .filter-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(37, 99, 235, .35); }
             .code-block {
                 position: relative;
                 border-radius: 0.375rem;
                 margin: 0.5rem 0;
                 overflow: hidden;
+                overflow: hidden;
+                border: 1px solid rgba(148, 163, 184, 0.25);
+                background: #0b1220;
+            }
+            .code-block pre { margin: 0; }
+            .code-block::before {
+                content: "CODE";
+                position: absolute;
+                top: 0; left: 0;
+                padding: 4px 10px;
+                font-size: 10px; letter-spacing: .6px;
+                color: #cbd5e1;
+                background: rgba(148, 163, 184, 0.15);
+                border-bottom-right-radius: 8px;
             }
             .copy-btn {
                 position: absolute;
                 top: 0.5rem;
                 right: 0.5rem;
                 padding: 0.25rem 0.5rem;
-                background-color: rgba(0, 0, 0, 0.5);
-                color: white;
+                background-color: rgba(15, 23, 42, 0.55);
+                color: #e2e8f0;
                 border: none;
                 border-radius: 0.25rem;
                 cursor: pointer;
@@ -67,12 +139,19 @@
                 transition: background-color 0.2s;
                 z-index: 10;
             }
-            .copy-btn:hover {
-                background-color: rgba(0, 0, 0, 0.7);
+            .copy-btn::before {
+                content: "\f0c5";
+                font-family: FontAwesome;
+                margin-right: 6px;
+                font-size: 12px;
             }
-            .copy-btn.copied {
-                background-color: #10b981;
-            }
+            .copy-btn:hover { background-color: rgba(15, 23, 42, 0.8); }
+            .copy-btn.copied { background-color: #10b981; }
+
+            /* 顶部导航优化与滚动态 */
+            header.sticky { backdrop-filter: saturate(1.2) blur(4px); background: rgba(255, 255, 255, .85); }
+            header.scrolled { background: rgba(255, 255, 255, .95); box-shadow: 0 8px 20px -12px rgba(15, 23, 42, .35); }
+            header h1 { letter-spacing: .3px; }
         }
     </style>
 </head>
@@ -2406,6 +2485,14 @@ gdb --args ./app arg1 arg2
                     });
                 });
             });
+        });
+
+        // 滚动时增强导航阴影与背景不透明度
+        document.addEventListener('scroll', function () {
+            const header = document.querySelector('header');
+            if (!header) return;
+            if (window.scrollY > 8) header.classList.add('scrolled');
+            else header.classList.remove('scrolled');
         });
 
         // 复制代码功能

@@ -2458,6 +2458,41 @@ gdb --args ./app arg1 arg2
                     <p class="text-gray-700">优化方向：提高局部性（数据/指令）、预取、减少跨核/跨NUMA访问、合并访问、向量化、避免伪共享。</p>
                 </div>
             </div>
+
+            <!-- 知识点卡片31 -->
+            <div class="card bg-white rounded-lg p-6 card-shadow card-hover" data-category="performance">
+                <h2 class="text-xl font-bold mb-4 text-primary">31. 介绍 NUMA（非一致内存访问）</h2>
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">问题描述</h3>
+                    <p class="text-gray-700">简要介绍 NUMA 的概念、与 UMA 的区别、为何会出现 NUMA、以及在软件层面的影响与常见优化策略。</p>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">核心要点</h3>
+                    <ul class="list-disc ml-5 text-gray-700 mb-2">
+                        <li><span class="font-medium">NUMA 概念：</span>Non-Uniform Memory
+                            Access，系统内存被划分为多个节点（node）；每个节点有自己的本地内存，部分 CPU 对本地内存访问延迟低、带宽高，对远端节点访问则延迟更高。</li>
+                        <li><span class="font-medium">与 UMA 的区别：</span>UMA（Uniform Memory Access）中所有 CPU
+                            访问内存的延迟/带宽均匀；NUMA 为了扩展性将内存与 CPU 绑定到不同节点，带来非均匀访问特性。</li>
+                        <li><span class="font-medium">出现原因：</span>多处理器/多套接字系统为提高内存带宽与扩展性，将内存物理上分配在靠近各个处理器的内存控制器上，从而形成
+                            NUMA 拓扑。</li>
+                        <li><span class="font-medium">软件影响：</span>线程/进程应尽量访问本地内存以减少远程访问延迟；不当的内存分配或线程调度会引起频繁跨节点访问，导致性能降低。
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="font-semibold text-lg mb-2">常见优化与工具</h3>
+                    <ul class="list-disc ml-5 text-gray-700">
+                        <li>绑定线程到 CPU（pthread_setaffinity_np / taskset / numactl --physcpubind）以保持计算与数据局部性。</li>
+                        <li>first-touch 分配策略：让首次访问页面的线程将内存分配到其本地 NUMA 节点。</li>
+                        <li>使用 <code>numactl</code> 和 <code>libnuma</code> 控制/查询 NUMA 拓扑、策略与内存分配。</li>
+                        <li>为大数据结构进行跨节点分片或复制，减少跨节点同步与缓存竞争（例如按节点划分工作集）。</li>
+                        <li>避免伪共享；利用 HugePages/hugeTLB 在适当场景下降低 TLB 压力并提升带宽。</li>
+                        <li>性能分析：使用 <code>numastat</code>、<code>perf</code>、<code>pcm</code> 等工具定位远程内存访问与带宽瓶颈。</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </main>
 

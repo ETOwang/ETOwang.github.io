@@ -956,10 +956,10 @@ a.article-title:hover {
   break-inside: avoid-column;
 }
 .archive-article-inner {
-  padding: 10px;
-  margin-bottom: 15px;
+padding: 16px;
+margin-bottom: 16px;
 }
-.archive-article-title {
+
   text-decoration: none;
   font-weight: bold;
   color: #555;
@@ -1459,6 +1459,9 @@ body {
 .archive-article-title { color: #0f172a; }
 .archive-article-title:hover { color: #2563eb; }
 
+/* Archive item spacing */
+.archive-article-header h1 { margin-top: 8px; }
+
 /* Focus-visible accessibility */
 a:focus-visible,
 button:focus-visible,
@@ -1486,3 +1489,19 @@ button:focus-visible,
   .article-entry td { border-bottom-color: rgba(148, 163, 184, 0.2); }
   .article-entry tr:nth-child(even) td { background: rgba(148, 163, 184, 0.06); }
 }
+
+/* Manual dark mode (html.dark) */
+html.dark body { background: linear-gradient(180deg, #0b1220 0%, #0b1220 100%); color: #e5e7eb; }
+html.dark #wrap { background: transparent; }
+html.dark .article-entry { color: #e2e8f0; }
+html.dark .article-inner,
+html.dark .archive-article-inner { background: #0f172a; border-color: rgba(148, 163, 184, 0.25); }
+html.dark .article-title { color: #e5e7eb; }
+html.dark .article-date,
+html.dark .archive-article-date { background: rgba(148, 163, 184, 0.15); color: #e5e7eb; border-color: rgba(148, 163, 184, 0.3); }
+html.dark .article-tag-list-link { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border-color: rgba(148, 163, 184, 0.3); }
+html.dark .article-entry code { background: rgba(148, 163, 184, 0.15); color: #e5e7eb; }
+html.dark .article-entry table { border-color: rgba(148, 163, 184, 0.3); }
+html.dark .article-entry th { background: rgba(148, 163, 184, 0.12); color: #e5e7eb; border-bottom-color: rgba(148, 163, 184, 0.25); }
+html.dark .article-entry td { border-bottom-color: rgba(148, 163, 184, 0.2); }
+html.dark .article-entry tr:nth-child(even) td { background: rgba(148, 163, 184, 0.06); }

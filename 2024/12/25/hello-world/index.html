@@ -23,9 +23,10 @@
   
     <link rel="shortcut icon" href="/favicon.png">
   
-  
-  
+  <script>(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();</script>
 <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/modern.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
 
   
     
@@ -57,7 +58,10 @@
         
       </nav>
       <nav id="sub-nav">
-        
+        <button id="theme-toggle" class="nav-icon theme-toggle-btn" title="切换深色模式" aria-label="Toggle dark mode" aria-pressed="false">
+          <span class="fa fa-sun-o icon-sun" aria-hidden="true"></span>
+          <span class="fa fa-moon-o icon-moon" aria-hidden="true" style="display:none;"></span>
+        </button>
         
           <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
         
@@ -213,6 +217,7 @@
 
 
 <script src="/js/script.js"></script>
+<script src="/js/theme-toggle.js"></script>
 
 
 

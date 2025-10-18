@@ -135,4 +135,65 @@
 
     $container.removeClass('mobile-nav-on');
   });
+
+  // Add copy-to-clipboard buttons to code blocks on posts
+  var initCopyButtons = function(){
+    var $articles = $('.article-entry');
+    if (!$articles.length) return;
+
+    // Hexo-highlighted blocks (figure.highlight)
+    $articles.find('figure.highlight').each(function(){
+      var $fig = $(this);
+      if ($fig.attr('data-has-copy')) return;
+      var $btn = $('<button type="button" class="copy-btn" aria-label="Copy code">Copy</button>');
+      $btn.on('click', function(){
+        var codeText = '';
+        var $codeCell = $fig.find('td.code');
+        if ($codeCell.length){
+          codeText = $codeCell.text();
+        } else if ($fig.find('pre').length){
+          codeText = $fig.find('pre').text();
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(codeText);
+        } else {
+          var $tmp = $('<textarea>').css({position:'fixed', top:'-1000px'});
+          $('body').append($tmp);
+          $tmp.val(codeText).select();
+          try { document.execCommand('copy'); } catch(e) {}
+          $tmp.remove();
+        }
+        $btn.addClass('copied').text('Copied');
+        setTimeout(function(){ $btn.removeClass('copied').text('Copy'); }, 1500);
+      });
+      $fig.css('position','relative').append($btn).attr('data-has-copy','1');
+    });
+
+    // Simple pre/code blocks
+    $articles.find('pre').each(function(){
+      var $pre = $(this);
+      if ($pre.closest('figure.highlight').length) return;
+      if ($pre.attr('data-has-copy')) return;
+      var $btn = $('<button type="button" class="copy-btn" aria-label="Copy code">Copy</button>');
+      $btn.on('click', function(){
+        var codeText = $pre.text();
+        if (navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(codeText);
+        } else {
+          var $tmp = $('<textarea>').css({position:'fixed', top:'-1000px'});
+          $('body').append($tmp);
+          $tmp.val(codeText).select();
+          try { document.execCommand('copy'); } catch(e) {}
+          $tmp.remove();
+        }
+        $btn.addClass('copied').text('Copied');
+        setTimeout(function(){ $btn.removeClass('copied').text('Copy'); }, 1500);
+      });
+      $pre.css('position','relative').append($btn).attr('data-has-copy','1');
+    });
+  };
+
+  $(function(){
+    initCopyButtons();
+  });
 })(jQuery);

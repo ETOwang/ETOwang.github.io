@@ -1,0 +1,29 @@
+# Node and package managers
+node_modules/
+.pnpm-store/
+package-lock.json
+npm-debug.log*
+yarn.lock
+pnpm-lock.yaml
+
+# Hexo build artifacts
+.db.json
+.deploy*/
+public/
+scripts/
+
+# Cache
+.cache/
+.tmp/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Editors/IDE
+.vscode/
+.idea/
+*.swp

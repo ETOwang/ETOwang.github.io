@@ -1,0 +1,107 @@
+/* Modern homepage enhancements: hero, glassmorphism cards, dark mode helpers, accessibility */
+
+:root {
+  --bg: #f8fafc;
+  --bg-muted: #f1f5f9;
+  --fg: #0f172a;
+  --fg-muted: #334155;
+  --card: rgba(255, 255, 255, 0.7);
+  --card-border: rgba(148, 163, 184, 0.35);
+  --primary: #2563eb;
+}
+
+html.dark {
+  --bg: #0b1220;
+  --bg-muted: #0f172a;
+  --fg: #e2e8f0;
+  --fg-muted: #94a3b8;
+  --card: rgba(15, 23, 42, 0.5);
+  --card-border: rgba(100, 116, 139, 0.35);
+  --primary: #60a5fa;
+}
+
+/* Basic theming for body and common text to ensure contrast on homepage */
+body.modern-home {
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg-muted) 100%);
+  color: var(--fg);
+}
+
+body.modern-home a { color: var(--primary); }
+
+/* Focus visible for accessibility */
+:where(a, button, [role="button"]) :focus { outline: none; }
+:where(a, button, [role="button"]).focus-visible,
+:where(a, button, [role="button"]):focus-visible {
+  outline: 3px solid rgba(37, 99, 235, .45);
+  outline-offset: 2px;
+}
+
+/* Hero section */
+.hero-wrap {
+  position: relative;
+  border-radius: 16px;
+  padding: 32px 24px;
+  margin: 24px 0 16px 0;
+  background: radial-gradient(1200px 400px at 10% -10%, rgba(99,102,241,.25), transparent 60%),
+              radial-gradient(1200px 400px at 110% 10%, rgba(34,197,94,.18), transparent 60%),
+              linear-gradient(180deg, rgba(255,255,255,.75), rgba(255,255,255,.55));
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(10px) saturate(1.05);
+  -webkit-backdrop-filter: blur(10px) saturate(1.05);
+}
+html.dark .hero-wrap {
+  background: radial-gradient(1200px 400px at 10% -10%, rgba(99,102,241,.2), transparent 60%),
+              radial-gradient(1200px 400px at 110% 10%, rgba(34,197,94,.16), transparent 60%),
+              linear-gradient(180deg, rgba(15,23,42,.65), rgba(15,23,42,.45));
+}
+.hero-title { font-size: 2rem; line-height: 1.2; margin: 8px 0; letter-spacing: .3px; color: var(--fg); }
+.hero-tagline { font-size: 1rem; color: var(--fg-muted); }
+.hero-cta { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; border: 1px solid transparent; text-decoration: none; transition: transform .15s ease, box-shadow .15s ease, background .15s ease; }
+.hero-cta.primary { background: linear-gradient(180deg, #3b82f6, #2563eb); color: #fff; box-shadow: 0 10px 18px -10px rgba(37, 99, 235, .55); }
+.hero-cta.secondary { background: transparent; border-color: var(--card-border); color: var(--fg); }
+.hero-cta:hover { transform: translateY(-2px); }
+.hero-row { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; margin-top: 14px; }
+.hero-avatar { width: 84px; height: 84px; border-radius: 9999px; border: 2px solid rgba(148,163,184,.45); box-shadow: 0 8px 20px -10px rgba(15,23,42,.35); object-fit: cover; }
+
+/* Glass cards grid */
+.featured-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 640px) { .featured-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .featured-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+.glass-card {
+  position: relative;
+  border-radius: 14px;
+  border: 1px solid var(--card-border);
+  background: var(--card);
+  backdrop-filter: blur(8px) saturate(1.05);
+  -webkit-backdrop-filter: blur(8px) saturate(1.05);
+  box-shadow: 0 12px 22px -12px rgba(15, 23, 42, 0.35);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.glass-card:hover { transform: translateY(-4px); box-shadow: 0 20px 32px -14px rgba(15, 23, 42, 0.45); }
+.glass-card .card-inner { padding: 16px; }
+.glass-card .card-title { font-size: 1.05rem; font-weight: 700; color: var(--fg); margin-bottom: 8px; }
+.glass-card .card-excerpt { color: var(--fg-muted); font-size: .95rem; }
+.glass-card .card-meta { display:flex; gap:10px; flex-wrap: wrap; margin-top: 12px; align-items: center; color: var(--fg-muted); font-size: .85rem; }
+.badge { display:inline-block; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--card-border); color: var(--fg-muted); font-size: .75rem; }
+
+/* Header nav enhancements and active state */
+#main-nav .main-nav-link { position: relative; }
+#main-nav .main-nav-link.active, #main-nav .main-nav-link[aria-current="page"] {
+  color: var(--primary);
+}
+#main-nav .main-nav-link.active::after, #main-nav .main-nav-link[aria-current="page"]::after {
+  content: "";
+  position: absolute; left: 0; bottom: -6px; height: 2px; width: 100%; background: var(--primary);
+}
+
+/* Footer social icons row */
+.footer-social { display:flex; gap: 12px; align-items: center; justify-content: center; margin-top: 10px; }
+.footer-social a { width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid var(--card-border); color: var(--fg); background: var(--card); transition: transform .15s ease, box-shadow .15s ease; text-decoration: none; }
+.footer-social a:hover { transform: translateY(-2px); box-shadow: 0 8px 18px -10px rgba(15,23,42,.35); }
+
+/* Dark mode toggle button */
+.theme-toggle-btn { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius: 50%; border:1px solid var(--card-border); background: var(--card); color: var(--fg); cursor: pointer; }
+
+/* Avoid affecting non-home pages */
+/* Only basic variables and components; rest of legacy theme remains intact */

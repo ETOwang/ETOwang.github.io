@@ -13,15 +13,22 @@
 <meta property="og:locale" content="en_US">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary">
-  
+<meta property="og:image" content="/images/og-default.png">
+<meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+
     <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
   
-    <link rel="shortcut icon" href="/favicon.png">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/png" href="/favicon.png">
   
   
   
+<script>(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
 <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/modern.css">
 
   
     
@@ -46,17 +53,17 @@
     <div id="header-inner" class="inner">
       <nav id="main-nav">
         <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
-        
-          <a class="main-nav-link" href="/">Home</a>
-        
-          <a class="main-nav-link" href="/archives">Archives</a>
-        
+        <a class="main-nav-link" href="/">首页</a>
+        <a class="main-nav-link" href="/">文章</a>
+        <a class="main-nav-link active" aria-current="page" href="/archives">归档</a>
+        <a class="main-nav-link" href="/about/">关于</a>
       </nav>
       <nav id="sub-nav">
-        
-        
-          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
-        
+        <button id="theme-toggle" class="nav-icon theme-toggle-btn" title="切换深色模式" aria-label="Toggle dark mode" aria-pressed="false">
+          <span class="fa fa-sun-o icon-sun" aria-hidden="true"></span>
+          <span class="fa fa-moon-o icon-moon" aria-hidden="true" style="display:none;"></span>
+        </button>
+        <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
         <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
       </nav>
       <div id="search-form-wrap">
@@ -202,6 +209,12 @@
   <div class="outer">
     <div id="footer-info" class="inner">
       
+      <div class="footer-social" aria-label="Social links">
+        <a href="mailto:john@example.com" title="Email" aria-label="Email"><span class="fa fa-envelope"></span></a>
+        <a href="https://github.com/" title="GitHub" aria-label="GitHub"><span class="fa fa-github"></span></a>
+        <a href="https://www.linkedin.com/" title="LinkedIn" aria-label="LinkedIn"><span class="fa fa-linkedin"></span></a>
+        <a href="https://twitter.com/" title="Twitter / X" aria-label="Twitter"><span class="fa fa-twitter"></span></a>
+      </div>
       &copy; 2025 John Doe<br>
       Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
     </div>
@@ -211,9 +224,10 @@
     </div>
     <nav id="mobile-nav">
   
-    <a href="/" class="mobile-nav-link">Home</a>
-  
-    <a href="/archives" class="mobile-nav-link">Archives</a>
+    <a href="/" class="mobile-nav-link">首页</a>
+    <a href="/" class="mobile-nav-link">文章</a>
+    <a href="/archives" class="mobile-nav-link">归档</a>
+    <a href="/about/" class="mobile-nav-link">关于</a>
   
 </nav>
     
@@ -230,6 +244,7 @@
 
 
 <script src="/js/script.js"></script>
+<script src="/js/theme-toggle.js"></script>
 
 
 

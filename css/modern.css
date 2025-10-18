@@ -103,5 +103,28 @@ html.dark .hero-wrap {
 /* Dark mode toggle button */
 .theme-toggle-btn { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius: 50%; border:1px solid var(--card-border); background: var(--card); color: var(--fg); cursor: pointer; }
 
+/* Homepage-only layout overrides */
+body.modern-home:not(.sidebar-restyled) #main { float: none; width: 100%; margin: 0; }
+body.modern-home:not(.sidebar-restyled) #sidebar { display: none; }
+
+/* Quick Archives pills */
+.quick-archives { margin: 10px 0 16px 0; }
+.pill-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--card-border); background: var(--card); color: var(--fg); text-decoration: none; transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease; }
+.pill .fa { opacity: .8; }
+.pill:hover { transform: translateY(-2px); box-shadow: 0 10px 18px -12px rgba(15,23,42,.35); }
+.pill.primary { background: linear-gradient(180deg, #3b82f6, #2563eb); border-color: transparent; color: #fff; box-shadow: 0 12px 22px -12px rgba(37, 99, 235, .55); }
+
+/* Restyled sidebar (optional mode) */
+body.modern-home.sidebar-restyled #sidebar { display: block; }
+body.modern-home.sidebar-restyled #main { display: inline; float: left; width: 73.33333333333333%; margin: 0 0.833333333333333%; }
+body.modern-home.sidebar-restyled #sidebar .widget-wrap { border-radius: 14px; border: 1px solid var(--card-border); background: var(--card); backdrop-filter: blur(8px) saturate(1.05); -webkit-backdrop-filter: blur(8px) saturate(1.05); box-shadow: 0 12px 22px -12px rgba(15,23,42,.35); padding: 12px; margin-bottom: 16px; transition: transform .18s ease, box-shadow .18s ease; }
+body.modern-home.sidebar-restyled #sidebar .widget-wrap:hover { transform: translateY(-2px); box-shadow: 0 18px 28px -14px rgba(15,23,42,.45); }
+body.modern-home.sidebar-restyled #sidebar .widget-title { color: var(--fg-muted); margin: 0 0 8px 0; font-size: .95rem; letter-spacing: .5px; }
+body.modern-home.sidebar-restyled #sidebar .widget { padding: 2px 4px; }
+body.modern-home.sidebar-restyled #sidebar .widget ul li, body.modern-home.sidebar-restyled #sidebar .archive-list li { margin: 6px 0; }
+body.modern-home.sidebar-restyled #sidebar a { color: var(--fg); text-decoration: none; }
+body.modern-home.sidebar-restyled #sidebar a:hover { color: var(--primary); }
+
 /* Avoid affecting non-home pages */
 /* Only basic variables and components; rest of legacy theme remains intact */
